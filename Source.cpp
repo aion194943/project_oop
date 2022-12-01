@@ -10,7 +10,6 @@ int main() {
 		CommandParser command;
 		cout << endl << "Enter your command: ";
 		cin >> command;
-		//cout << command;
 		if (command.getCommand() == "exit") {
 			cout << endl << "Closing program...";
 			return 0;
@@ -27,7 +26,51 @@ int main() {
 			cout << "  SELECT * FROM table_name " << endl;
 			cout << "  UPDATE table_name SET column_name = value WHERE column_name = value" << endl;
 		}
-		else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";{
-			
+		else {
+			if (command.returnArg1() == "CREATE") {
+				if (command.returnArg2() == "INDEX") {
+					CreateIndex cmd(command.args, command.getArgCount());
+				}
+				else if (command.returnArg2() == "TABLE") {
+					CreateTable cmd(command.args, command.getArgCount());
+				}
+				else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+			}
+			else if (command.returnArg1() == "DELETE") {
+				if (command.returnArg2() == "FROM") {
+					DeleteFrom cmd(command.args, command.getArgCount());
+				}
+				else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+			}
+			else if (command.returnArg1() == "DISPLAY") {
+				if (command.returnArg2() == "TABLE") {
+					DisplayTable cmd(command.args, command.getArgCount());
+				}
+				else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+			}
+			else if (command.returnArg1() == "DROP") {
+				if (command.returnArg2() == "INDEX") {
+					DropIndex cmd(command.args, command.getArgCount());
+				}
+				else if (command.returnArg2() == "TABLE") {
+					DropTable cmd(command.args, command.getArgCount());
+				}
+				else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+			}
+			else if (command.returnArg1() == "INSERT") {
+				if (command.returnArg2() == "INTO") {
+					InsertInto cmd(command.args, command.getArgCount());
+				}
+				else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+			}
+			else if (command.returnArg1() == "SELECT") {
+				Select cmd(command.args, command.getArgCount());
+			}
+			else if (command.returnArg1() == "UPDATE") {
+				Update cmd(command.args, command.getArgCount());
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+
+		}
 	}
 }
