@@ -407,5 +407,3 @@ public:
 		return CreateTable::noColumns;
 	}
 };
-
-int CreateTable::noColumns = -1;
