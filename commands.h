@@ -406,4 +406,162 @@ public:
 	{
 		return CreateTable::noColumns;
 	}
+
+	//operators
+	CreateTable operator=(const CreateTable& newTable)
+	{
+		if (newTable.table_name == this->table_name)
+		{
+			return *this;
+		}
+		this->table_name = newTable.table_name;
+		this->setDimension(newTable.dimension, newTable.noColumns);
+		return *this;
+	}
+
+	CreateTable operator!()
+	{
+		CreateTable result = *this;
+		result.getTableName() = "";
+		result.dimension = nullptr;
+		return result;
+	}
+
+	string operator[](int index)
+	{
+		if (index < 0 || index >= noColumns)
+		{
+			cout << "The index is wrong";
+		}
+		else
+		{
+			return this->column_name[index][250];
+		}
+	}
+
+	explicit operator int()
+	{
+		return this->getNoColumns();
+	}
+
+	//post-incrementation
+	CreateTable operator++(int)
+	{
+		CreateTable result = *this;
+		result.dimension++;
+		return result;
+	}
+
+	//pre-incrementation
+	CreateTable operator++()
+	{
+		this->dimension++;
+		return *this;
+	}
+
+	friend ostream& operator<<(ostream& console, CreateTable& selection);
+	friend void operator>>(istream& input, CreateTable& selection);
+
+};
+
+int CreateTable::noColumns = -1;
+
+ostream& operator <<(ostream& console, CreateTable& newTable)
+{
+	cout << endl << "----------------------" << endl;
+	cout << "The table name is: " << newTable.getTableName() << endl;
+	for (int i = 0; i < CreateTable::noColumns; i++)
+	{
+		cout << newTable.getColumnName(i) << " ";
+	}
+	cout << endl;
+	if (newTable.noColumns > 0)
+	{
+		cout << "The number of columns is: " << newTable.noColumns << endl;
+		for (int i = 0; i < newTable.noColumns; i++)
+		{
+			cout << "Name of column " << i << " is " << newTable.column_name[i] << endl;
+		}
+	}
+	return console;
+}
+
+void operator >>(istream& input, CreateTable& newTable)
+{
+	cout << endl << "Table name ";
+	input >> newTable.table_name;
+	cout << "The number of columns is ";
+	int no;
+	input >> no;
+	int* columns = new int[no];
+	for (int i = 0; i < no; i++)
+	{
+		cout << endl << "The dimension of column " << i + 1 << " is: ";
+		input >> newTable.dimension[i];
+	}
+	newTable.setDimension(columns, no);
+}
+
+bool operator>(CreateTable newTable1, CreateTable newTable2)
+{
+	if (newTable1.getNoColumns() > newTable2.getNoColumns())
+		return true;
+	else
+		return false;
+}
+
+bool operator==(CreateTable newTable1, CreateTable newTable2)
+{
+	if (newTable1.getNoColumns() == newTable2.getNoColumns())
+		return true;
+	else
+		return false;
+};
+
+class DropTable {
+private:
+	string args[100] = {};
+	int argCount = 0;
+public:
+
+	DropTable(string args[], int argCount) {
+		if (argCount == 3) {
+			for (int i = 0; i < argCount; i++) {
+				this->args[i] = args[i];
+			}
+			this->argCount = argCount;
+			cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+			cout << endl << "Table name: " << this->args[2];
+		}
+		else if (argCount > 3) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+	}
+};
+
+class DisplayTable {
+private:
+	string args[100] = {};
+	int argCount = 0;
+public:
+
+	DisplayTable(string args[], int argCount) {
+		if (argCount == 3) {
+			for (int i = 0; i < argCount; i++) {
+				this->args[i] = args[i];
+			}
+			this->argCount = argCount;
+			cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+			cout << endl << "Table name: " << this->args[2];
+		}
+		else if (argCount > 3) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+	}
 };
