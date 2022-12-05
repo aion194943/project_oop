@@ -565,3 +565,273 @@ public:
 		}
 	}
 };
+class CreateIndex {
+private:
+	string args[100] = {};
+	int argCount = 0;
+public:
+
+	CreateIndex(string args[], int argCount) {
+		if (argCount == 6) {
+			if (args[3] == "ON") {
+				if (CheckColumnName(args[5]) == true) {
+					for (int i = 0; i < argCount; i++) {
+						this->args[i] = args[i];
+					}
+					args[5].pop_back();
+					args[5].erase(args[5].begin());
+					this->args[5] = args[5];
+					this->argCount = argCount;
+					if (this->args[5] != "") {
+						cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+						cout << endl << "Index name: " << this->args[2];
+						cout << endl << "Table name: " << this->args[4];
+						cout << endl << "Column name: " << this->args[5];
+					}
+					else cout << endl << "ERROR: Unspecified column name";
+				}
+				else cout << endl << "ERROR: Invalid column name format";
+			}
+		}
+		else if (argCount == 9) {
+			if (args[2] == "IF" && args[3] == "NOT" && args[4] == "EXISTS" && args[6] == "ON") {
+				if (CheckColumnName(args[8]) == true) {
+					for (int i = 0; i < argCount; i++) {
+						this->args[i] = args[i];
+					}
+					args[8].pop_back();
+					args[8].erase(args[8].begin());
+					this->args[8] = args[8];
+					this->argCount = argCount;
+					if (this->args[8] != "") {
+						cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+						cout << endl << "Index name: " << this->args[5];
+						cout << endl << "Table name: " << this->args[7];
+						cout << endl << "Column name: " << this->args[8];
+					}
+					else cout << endl << "ERROR: Unspecified column name";
+				}
+				else cout << endl << "ERROR: Invalid column name format";
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+		}
+		else if (argCount > 9) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else if (argCount < 6 || (argCount > 6 && argCount < 9)) {
+			cout << endl << "ERROR: Too few parameters";
+		}
+	}
+
+	bool CheckColumnName(string arg) {
+		if (arg.front() == '(' && arg.back() == ')') {
+			return true;
+		}
+		else return false;
+	}
+};
+
+class DropIndex {
+private:
+	string args[100] = {};
+	int argCount = 0;
+public:
+
+	DropIndex(string args[], int argCount) {
+		if (argCount == 3) {
+			for (int i = 0; i < argCount; i++) {
+				this->args[i] = args[i];
+			}
+			this->argCount = argCount;
+			cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+			cout << endl << "Table name: " << this->args[2];
+		}
+		else if (argCount > 3) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+	}
+
+};
+
+class InsertInto {
+private:
+	string args[100] = {};
+	int argCount = 0;
+	string table_name = "";
+	string column_name = "";
+	string type = "";
+	int dimension = 0;
+	string default_value = "";
+public:
+
+	InsertInto(string args[], int argCount) {
+		if (argCount == 5) {
+			if (args[3] == "VALUES") {
+				if (CheckColumnName(args[4]) == true) {
+					args[4].pop_back();
+					args[4].erase(args[4].begin());
+					string copy = args[4];
+					size_t pos = 0;
+					string token;
+					string argsCopy[100] = {};
+					int i = 0;
+					while ((pos = copy.find(",")) != string::npos) {
+						token = copy.substr(0, pos);
+						argsCopy[i] = token;
+						i++;
+						argCount++;
+						copy.erase(0, pos + 1);
+					}
+					argsCopy[i] = copy;
+					for (int j = 0; j <= i; j++) {
+						args[j + 4] = argsCopy[j];
+					}
+					if (argCount == 8) {
+						for (int i = 0; i < argCount; i++) {
+							this->args[i] = args[i];
+						}
+						this->argCount = argCount;
+						cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+						cout << endl << "Table name: " << this->args[2];
+						//setTableName(this->args[2]);
+						cout << endl << "Column name: " << this->args[4];
+						//setColumnName(this->args[4]);
+						cout << endl << "Column type: " << this->args[5];
+						//setType(this->args[5]);
+						cout << endl << "Column size: " << this->args[6];
+						//setDimension(stoi(this->args[6]));
+						cout << endl << "Column default value: " << this->args[7];
+						//setDefaultValue(this->args[7]);
+					}
+					else cout << endl << "ERROR: Invalid parameter column format";
+				}
+				else cout << endl << "ERROR: Invalid column format";
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+		}
+		else if (argCount > 5) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+	}
+
+	bool CheckColumnName(string arg) {
+		if (arg.front() == '(' && arg.back() == ')') {
+			return true;
+		}
+		else return false;
+	}
+
+	InsertInto(string newName, string newType)
+	{
+		this->column_name = newName;
+		this->type = newType;
+	}
+
+	InsertInto(string newTableName, string newName, string newType, int size, string newDefaultValue)
+	{
+		this->table_name = newTableName;
+		this->column_name = newName;
+		this->type = newType;
+		this->dimension = size;
+		this->default_value = newDefaultValue;
+	}
+
+	InsertInto(const InsertInto& column)
+	{
+		this->table_name = column.table_name;
+		this->column_name = column.column_name;
+		this->type = column.type;
+		this->dimension = column.dimension;
+		this->default_value = column.default_value;
+	}
+
+	string getTableName()
+	{
+		return this->table_name;
+	}
+
+	string getColumn()
+	{
+		return this->column_name;
+	}
+
+	string getType()
+	{
+		return this->type;
+	}
+
+	int getDimension()
+	{
+		return this->dimension;
+	}
+
+	string getDefaultValue()
+	{
+		return this->default_value;
+	}
+
+	void setTableName(string newTableName)
+	{
+		if (newTableName != "")
+		{
+			this->table_name = newTableName;
+		}
+		else
+		{
+			cout << "ERROR: Table name is missing";
+		}
+	}
+
+	void setColumnName(string newColumnName)
+	{
+		if (newColumnName != "")
+		{
+			this->column_name = newColumnName;
+		}
+		else
+		{
+			cout << "ERROR: Column name is missing";
+		}
+	}
+
+	void setType(string newType)
+	{
+		if (newType == "integer" || newType == "float" || newType == "text")
+		{
+			this->type = newType;
+		}
+		else
+		{
+			cout << "The type of the column is not correct";
+		}
+	}
+
+	void setDimension(int newDimension)
+	{
+		if (newDimension != 0 && newDimension > 0)
+		{
+			this->dimension = newDimension;
+		}
+		else
+		{
+			cout << "Incorrect dimension value";
+		}
+	}
+
+	void setDefaultValue(string newDefaultValue)
+	{
+		if (newDefaultValue != "")
+		{
+			this->default_value = newDefaultValue;
+		}
+		else
+		{
+			cout << "ERROR: Default value not specified";
+		}
+	}
