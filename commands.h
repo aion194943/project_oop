@@ -836,277 +836,341 @@ public:
 		}
 	}
 
-class Select {
-private:
-	string args[100] = {};
-	int argCount = 0;
-	string table_name = "";
-	string* column_names = nullptr;
-	static int noColumns;
-public:
+	class Select {
+	private:
+		string args[100] = {};
+		int argCount = 0;
+		string table_name = "";
+		string* column_names = nullptr;
+		static int noColumns;
+	public:
 
-	Select(string args[], int argCount) {
-		if (argCount >= 4) {
-			if (args[1] == "ALL" && args[2] == "FROM") {
-				if (args[4] == "WHERE" && args[6] == "=") {
-					for (int i = 0; i < argCount; i++) {
-						this->args[i] = args[i];
-					}
-					this->argCount = argCount;
-					cout << endl << "You used the command: " << this->args[0];
-					cout << endl << "You selected the columns: " << this->args[1];
-					cout << endl << "Table name: " << this->args[3];
-					cout << endl << "Has filter: yes";
-					cout << endl << "Column being checked in WHERE: " << this->args[5];
-					cout << endl << "Value being checked in WHERE: " << this->args[7];
-				}
-				else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
-					cout << endl << "ERROR: WHERE formatting incorrectly specified";
-				}
-				else if (args[4] == "") {
-					for (int i = 0; i < argCount; i++) {
-						this->args[i] = args[i];
-					}
-					this->argCount = argCount;
-					cout << endl << "You used the command: " << this->args[0];
-					cout << endl << "You selected the columns: " << this->args[1];
-					cout << endl << "Table name: " << this->args[3];
-					cout << endl << "Has filter: no";
-				}
-				else cout << endl << "ERROR: Invalid WHERE or table name format";
-			}
-			else if (args[1] != "ALL" && args[2] == "FROM") {
-				if (CheckColumnName(args[1]) == true) {
-					if (args[4] == "WHERE" && args[6] == "=" && args[7] != "" && args[8] == "") {
-						args[1].pop_back();
-						args[1].erase(args[1].begin());
-						size_t pos = 0;
-						string copy = args[1];
-						string argsCopy[100] = {};
-						string token;
-						int i = 0;
-						if (copy.find(",") != string::npos) {
-							while ((pos = copy.find(",")) != string::npos) {
-								token = copy.substr(0, pos);
-								argsCopy[0 + i] = token;
-								i++;
-								argCount++;
-								copy.erase(0, pos + 1);
-							}
-							argsCopy[i] = copy;
-						
-							for (int j = argCount - 1; j > i; j--) {
-								args[j] = args[j - i + 1];
-							}
-							for (int j = 0; j <= i; j++) {
-								args[j + 1] = argsCopy[j];
-							}
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							cout << endl << "You used the command: " << this->args[0];
-							cout << endl << "You selected the columns: ";
-							for (int j = 1; j <= i + 1; j++) {
-								cout << this->args[j] << " ";
-							}
-							cout << endl << "Table name: " << this->args[i + 2];
-							cout << endl << "Has filter: yes";
-							cout << endl << "Column being checked in WHERE: " << this->args[i + 4];
-							cout << endl << "Value being checked in WHERE: " << this->args[i + 6];
+		Select(string args[], int argCount) {
+			if (argCount >= 4) {
+				if (args[1] == "ALL" && args[2] == "FROM") {
+					if (args[4] == "WHERE" && args[6] == "=") {
+						for (int i = 0; i < argCount; i++) {
+							this->args[i] = args[i];
 						}
-						else {
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							cout << endl << "You used the command: " << this->args[0];
-							cout << endl << "You selected the columns: " << this->args[1];
-							cout << endl << "Table name: " << this->args[3];
-							cout << endl << "Has filter: yes";
-							cout << endl << "Column being checked in WHERE: " << this->args[5];
-							cout << endl << "Value being checked in WHERE: " << this->args[7];
-						}
-						
+						this->argCount = argCount;
+						cout << endl << "You used the command: " << this->args[0];
+						cout << endl << "You selected the columns: " << this->args[1];
+						cout << endl << "Table name: " << this->args[3];
+						cout << endl << "Has filter: yes";
+						cout << endl << "Column being checked in WHERE: " << this->args[5];
+						cout << endl << "Value being checked in WHERE: " << this->args[7];
 					}
 					else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
 						cout << endl << "ERROR: WHERE formatting incorrectly specified";
 					}
-					else if (args[4] == "")
-					{
-						args[1].pop_back();
-						args[1].erase(args[1].begin());
-						size_t pos = 0;
-						string copy = args[1];
-						string argsCopy[100] = {};
-						string token;
-						int i = 0;
-						if (copy.find(",") != string::npos) {
-							while ((pos = copy.find(",")) != string::npos) {
-								token = copy.substr(0, pos);
-								argsCopy[i] = token;
-								i++;
-								argCount++;
-								copy.erase(0, pos + 1);
-							}
-							argsCopy[i] = copy;
-							for (int j = argCount - 1; j > i; j--) {
-								args[j] = args[j - i + 1];
-							}
-							for (int j = 0; j <= i; j++) {
-								args[j + 1] = argsCopy[j];
-							}
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							cout << endl << "You used the command: " << this->args[0];
-							cout << endl << "You selected the columns: ";
-							for (int j = 1; j <= i + 1; j++) {
-								cout << this->args[j] << " ";
-							}
-							cout << endl << "Table name: " << this->args[i + 2];
-							cout << endl << "Has filter: no";
+					else if (args[4] == "") {
+						for (int i = 0; i < argCount; i++) {
+							this->args[i] = args[i];
 						}
-						else {
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							cout << endl << "You used the command: " << this->args[0];
-							cout << endl << "You selected the columns: " << this->args[1];
-							cout << endl << "Table name: " << this->args[3];
-							cout << endl << "Has filter: no";
-						}
-					} 
-					else cout <<  endl << "ERROR: Invalid WHERE or table name format";
+						this->argCount = argCount;
+						cout << endl << "You used the command: " << this->args[0];
+						cout << endl << "You selected the columns: " << this->args[1];
+						cout << endl << "Table name: " << this->args[3];
+						cout << endl << "Has filter: no";
+					}
+					else cout << endl << "ERROR: Invalid WHERE or table name format";
 				}
-				else cout << endl << "ERROR: Invalid column format";
-			}
-			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
-		}
-	}
+				else if (args[1] != "ALL" && args[2] == "FROM") {
+					if (CheckColumnName(args[1]) == true) {
+						if (args[4] == "WHERE" && args[6] == "=" && args[7] != "" && args[8] == "") {
+							args[1].pop_back();
+							args[1].erase(args[1].begin());
+							size_t pos = 0;
+							string copy = args[1];
+							string argsCopy[100] = {};
+							string token;
+							int i = 0;
+							if (copy.find(",") != string::npos) {
+								while ((pos = copy.find(",")) != string::npos) {
+									token = copy.substr(0, pos);
+									argsCopy[0 + i] = token;
+									i++;
+									argCount++;
+									copy.erase(0, pos + 1);
+								}
+								argsCopy[i] = copy;
 
-	bool CheckColumnName(string arg) {
-		if (arg.front() == '(' && arg.back() == ')') {
-			string copy = arg;
-			copy.pop_back();
-			copy.erase(copy.begin());
-			if (copy != "") {
-				return true;
+								for (int j = argCount - 1; j > i; j--) {
+									args[j] = args[j - i + 1];
+								}
+								for (int j = 0; j <= i; j++) {
+									args[j + 1] = argsCopy[j];
+								}
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								this->argCount = argCount;
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								this->argCount = argCount;
+								cout << endl << "You used the command: " << this->args[0];
+								cout << endl << "You selected the columns: ";
+								for (int j = 1; j <= i + 1; j++) {
+									cout << this->args[j] << " ";
+								}
+								cout << endl << "Table name: " << this->args[i + 2];
+								cout << endl << "Has filter: yes";
+								cout << endl << "Column being checked in WHERE: " << this->args[i + 4];
+								cout << endl << "Value being checked in WHERE: " << this->args[i + 6];
+							}
+							else {
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								this->argCount = argCount;
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								cout << endl << "You used the command: " << this->args[0];
+								cout << endl << "You selected the columns: " << this->args[1];
+								cout << endl << "Table name: " << this->args[3];
+								cout << endl << "Has filter: yes";
+								cout << endl << "Column being checked in WHERE: " << this->args[5];
+								cout << endl << "Value being checked in WHERE: " << this->args[7];
+							}
+
+						}
+						else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
+							cout << endl << "ERROR: WHERE formatting incorrectly specified";
+						}
+						else if (args[4] == "")
+						{
+							args[1].pop_back();
+							args[1].erase(args[1].begin());
+							size_t pos = 0;
+							string copy = args[1];
+							string argsCopy[100] = {};
+							string token;
+							int i = 0;
+							if (copy.find(",") != string::npos) {
+								while ((pos = copy.find(",")) != string::npos) {
+									token = copy.substr(0, pos);
+									argsCopy[i] = token;
+									i++;
+									argCount++;
+									copy.erase(0, pos + 1);
+								}
+								argsCopy[i] = copy;
+								for (int j = argCount - 1; j > i; j--) {
+									args[j] = args[j - i + 1];
+								}
+								for (int j = 0; j <= i; j++) {
+									args[j + 1] = argsCopy[j];
+								}
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								this->argCount = argCount;
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								this->argCount = argCount;
+								cout << endl << "You used the command: " << this->args[0];
+								cout << endl << "You selected the columns: ";
+								for (int j = 1; j <= i + 1; j++) {
+									cout << this->args[j] << " ";
+								}
+								cout << endl << "Table name: " << this->args[i + 2];
+								cout << endl << "Has filter: no";
+							}
+							else {
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								this->argCount = argCount;
+								for (int i = 0; i < argCount; i++) {
+									this->args[i] = args[i];
+								}
+								cout << endl << "You used the command: " << this->args[0];
+								cout << endl << "You selected the columns: " << this->args[1];
+								cout << endl << "Table name: " << this->args[3];
+								cout << endl << "Has filter: no";
+							}
+						}
+						else cout << endl << "ERROR: Invalid WHERE or table name format";
+					}
+					else cout << endl << "ERROR: Invalid column format";
+				}
+				else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+			}
+		}
+
+		bool CheckColumnName(string arg) {
+			if (arg.front() == '(' && arg.back() == ')') {
+				string copy = arg;
+				copy.pop_back();
+				copy.erase(copy.begin());
+				if (copy != "") {
+					return true;
+				}
+				else return false;
 			}
 			else return false;
 		}
-		else return false;
-	}
 
-	string* getColumns()
-	{
-		return this->column_names;
-	}
+		string* getColumns()
+		{
+			return this->column_names;
+		}
 
-	string getTableName()
-	{
-		return this->table_name;
-	}
+		string getTableName()
+		{
+			return this->table_name;
+		}
 
-	static int getNoColumns()
-	{
-		return Select::noColumns;
-	}
+		static int getNoColumns()
+		{
+			return Select::noColumns;
+		}
 
-	void setColumns(string* newColumns, int newNoColumns)
-	{
-		if (newColumns != nullptr && newNoColumns > 0)
+		void setColumns(string* newColumns, int newNoColumns)
+		{
+			if (newColumns != nullptr && newNoColumns > 0)
+			{
+				if (this->column_names)
+				{
+					delete[] this->column_names;
+				}
+				this->column_names = new string[newNoColumns];
+				memcpy(this->column_names, newColumns, sizeof(string) * newNoColumns);
+				this->noColumns = newNoColumns;
+			}
+		}
+
+		void setTableName(string newTableName)
+		{
+			if (newTableName != "")
+			{
+				this->table_name = newTableName;
+			}
+			else
+			{
+				cout << "ERROR: Table name is missing";
+			}
+		}
+
+		Select(string newTableName)
+		{
+			this->table_name = newTableName;
+		}
+
+		Select(string newTableName, string* newPoints, int noColumns)
+		{
+			this->table_name = newTableName;
+			this->setColumns(newPoints, noColumns);
+		}
+
+		Select(const Select& selection)
+		{
+			this->table_name = selection.table_name;
+			this->setColumns(selection.column_names, selection.noColumns);
+		}
+
+		~Select()
 		{
 			if (this->column_names)
 			{
 				delete[] this->column_names;
 			}
-			this->column_names = new string[newNoColumns];
-			memcpy(this->column_names, newColumns, sizeof(string) * newNoColumns);
-			this->noColumns = newNoColumns;
 		}
-	}
 
-	void setTableName(string newTableName)
-	{
-		if (newTableName != "")
+		//operators
+
+		Select operator=(const Select& selection)
 		{
-			this->table_name = newTableName;
-		}
-		else
-		{
-			cout << "ERROR: Table name is missing";
-		}
-	}
-
-	Select(string newTableName)
-	{
-		this->table_name = newTableName;
-	}
-
-	Select(string newTableName, string* newPoints, int noColumns)
-	{
-		this->table_name = newTableName;
-		this->setColumns(newPoints, noColumns);
-	}
-
-	Select(const Select& selection)
-	{
-		this->table_name = selection.table_name;
-		this->setColumns(selection.column_names, selection.noColumns);
-	}
-
-	~Select()
-	{
-		if (this->column_names)
-		{
-			delete[] this->column_names;
-		}
-	}
-
-	//operators
-
-	Select operator=(const Select& selection)
-	{
-		if (selection.table_name == this->table_name)
-		{
+			if (selection.table_name == this->table_name)
+			{
+				return *this;
+			}
+			this->table_name = selection.table_name;
+			this->setColumns(selection.column_names, selection.noColumns);
 			return *this;
 		}
-		this->table_name = selection.table_name;
-		this->setColumns(selection.column_names, selection.noColumns);
-		return *this;
-	}
 
-	Select operator!()
-	{
-		Select result = *this;
-		result.column_names = nullptr;
-		result.noColumns = 0;
-		return result;
-	}
+		Select operator!()
+		{
+			Select result = *this;
+			result.column_names = nullptr;
+			result.noColumns = 0;
+			return result;
+		}
 
-	explicit operator int()
-	{
-		return this->getNoColumns();
-	}
+		explicit operator int()
+		{
+			return this->getNoColumns();
+		}
 
-	friend ostream& operator<<(ostream& console, Select& selection);
-	friend void operator>>(istream& input, Select& selection);
-	friend Select operator+(Select& selection, string text);
+		friend ostream& operator<<(ostream& console, Select& selection);
+		friend void operator>>(istream& input, Select& selection);
+		friend Select operator+(Select& selection, string text);
+
+
+		int Select::noColumns = 0;
+
+		ostream& operator <<(ostream& console, Select& selection)
+		{
+			cout << endl << "----------------------" << endl;
+			cout << "The table name is: " << selection.table_name << endl;
+			if (selection.noColumns > 0)
+			{
+				cout << "The number of columns is: " << selection.noColumns << endl;
+				for (int i = 0; i < selection.noColumns; i++)
+				{
+					cout << "Name of column " << i << " is " << selection.column_names[i] << endl;
+				}
+			}
+			return console;
+		}
+
+		void operator >>(istream& input, Select& selection)
+		{
+			cout << endl << "Table name ";
+			input >> selection.table_name;
+			cout << "The number of columns is ";
+			int no;
+			input >> no;
+			string* columns = new string[no];
+			for (int i = 0; i < no; i++)
+			{
+				cout << endl << "The name of column " << i + 1 << " is: ";
+				input >> columns[i];
+			}
+			selection.setColumns(columns, no);
+		}
+
+		Select operator+(Select& selection, string text)
+		{
+			Select result = selection;
+			string* newColumns = new string[selection.noColumns + 1];
+			for (int i = 0; i < selection.noColumns; i++)
+			{
+				newColumns[i] = selection.column_names[i];
+			}
+			newColumns[selection.noColumns] = text;
+			result.setColumns(newColumns, selection.noColumns + 1);
+			return result;
+		}
+
+		bool operator>(Select selection1, Select selection2)
+		{
+			if (selection1.getNoColumns() > selection2.getNoColumns())
+				return true;
+			else
+				return false;
+		}
+
+		bool operator==(Select selection1, Select selection2)
+		{
+			if (selection1.getNoColumns() == selection2.getNoColumns())
+				return true;
+			else
+				return false;
+		};
+	};
 };
