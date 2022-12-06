@@ -1174,3 +1174,33 @@ public:
 		};
 	};
 };
+class Update {
+private:
+	string args[100] = {};
+	int argCount = 0;
+public:
+
+	Update(string args[], int argCount) {
+		if (argCount == 10) {
+			if (args[2] == "SET" && args[4] == "=" && args[6] == "WHERE" && args[8] == "=") {
+				for (int i = 0; i < argCount; i++) {
+					this->args[i] = args[i];
+				}
+				this->argCount = argCount;
+				cout << endl << "You used the command: " << this->args[0];
+				cout << endl << "Table name: " << this->args[1];
+				cout << endl << "Column to set: " << this->args[3];
+				cout << endl << "Value to set: " << this->args[5];
+				cout << endl << "Column being checked in WHERE: " << this->args[7];
+				cout << endl << "Value being checked in WHERE: " << this->args[9];
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+		}
+		else if (argCount > 10) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+	}
+};
