@@ -1292,8 +1292,9 @@ bool operator==(Select selection1, Select selection2)
 
 class Update {
 private:
-	string args[100] = {};
+	string args[20] = {};
 	int argCount = 0;
+	bool isValid = false;
 public:
 
 	Update(string args[], int argCount) {
@@ -1303,12 +1304,13 @@ public:
 					this->args[i] = args[i];
 				}
 				this->argCount = argCount;
-				cout << endl << "You used the command: " << this->args[0];
-				cout << endl << "Table name: " << this->args[1];
-				cout << endl << "Column to set: " << this->args[3];
-				cout << endl << "Value to set: " << this->args[5];
-				cout << endl << "Column being checked in WHERE: " << this->args[7];
-				cout << endl << "Value being checked in WHERE: " << this->args[9];
+				//cout << endl << "You used the command: " << this->args[0];
+				//cout << endl << "Table name: " << this->args[1];
+				//cout << endl << "Column to set: " << this->args[3];
+				//cout << endl << "Value to set: " << this->args[5];
+				//cout << endl << "Column being checked in WHERE: " << this->args[7];
+				//cout << endl << "Value being checked in WHERE: " << this->args[9];
+				this->isValid = true;
 			}
 			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
 		}
@@ -1318,6 +1320,187 @@ public:
 		else {
 			cout << endl << "ERROR: Too few parameters";
 		}
+		if (this->isValid) {
+			string tableFileName = this->args[1] + ".dsc";
+			string copyBin;
+			ifstream table(tableFileName);
+			if (table) {
+				string tableName;
+				getline(table, tableName);
+				string dummyString;
+				int noOfColumns = 0;
+				string columnNames[100] = {};
+				while (!table.eof()) {
+					getline(table, dummyString);
+					string copy = dummyString;
+					string token;
+					size_t pos = 0;
+					string argsCopy[4] = {};
+					int i = 0;
+					while ((pos = copy.find(",")) != string::npos) {
+						token = copy.substr(0, pos);
+						argsCopy[i] = token;
+						i++;
+						copy.erase(0, pos + 1);
+					}
+					argsCopy[i] = copy;
+					columnNames[noOfColumns] = argsCopy[0];
+					noOfColumns++;
+				}
+				bool columnExists = false;
+				int columnPosition;
+				int columnToModifyPosition;
+				for (int i = 0; i < noOfColumns; i++) {
+					if (columnNames[i] == args[3]) {
+						columnToModifyPosition = i;
+					}
+					if (columnNames[i] == args[7]) {
+						columnPosition = i;
+						columnExists = true;
+					}
+				}
+				if (columnExists) {
+					tableFileName = this->args[1] + ".dat";
+					ifstream binFile(tableFileName, ios::in | ios::binary);
+					if (binFile.is_open()) {
+						binFile.seekg(0, ios::end);
+						int amountOfValues = binFile.tellg() / 1000;
+						binFile.clear();
+						binFile.seekg(0, ios::beg);
+						string valuesExtracted;
+						int countOfModifiedValues = 0;
+						for (int i = 1; i <= amountOfValues; i++) {
+							char p;
+							bool isLastCharacter = false;
+							valuesExtracted = "";
+							while (binFile.get(p)) {
+								if (p != '\0') {
+									valuesExtracted += p;
+								}
+								else break;
+							}
+							/*cout << endl << valuesExtracted;*/
+
+							string copy = valuesExtracted;
+							string token;
+							size_t pos = 0;
+							string argsCopy[100] = {};
+							int j = 0;
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[j] = token;
+								j++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[j] = copy;
+
+							if (argsCopy[columnPosition] == this->args[9]) {
+								/*cout << "Yes, there is a value like that";*/
+								argsCopy[columnToModifyPosition] = this->args[5];
+								countOfModifiedValues++;
+								valuesExtracted = "";
+								for (int k = 0; k <= j; k++) {
+									if (k != j) {
+										valuesExtracted = valuesExtracted + argsCopy[k] + ",";
+									}
+									else valuesExtracted = valuesExtracted + argsCopy[k];
+								}
+								/*cout << endl << valuesExtracted;*/
+
+								copyBin = "." + this->args[1] + "_copy.dat";
+								ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
+								int size = valuesExtracted.size() + 1;
+								int bufferSize = 1000 - size;
+								char* buffer = new char[bufferSize];
+								copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
+								copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
+								delete[] buffer;
+								copyOfBinFile.close();
+							}
+
+							else {
+								copyBin = "." + this->args[1] + "_copy.dat";
+								ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
+								int size = valuesExtracted.size() + 1;
+								int bufferSize = 1000 - size;
+								char* buffer = new char[bufferSize];
+								copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
+								copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
+								delete[] buffer;
+								copyOfBinFile.close();
+							}
+							binFile.clear();
+							int nextPos = i * 1000;
+							binFile.seekg(nextPos);
+						}
+						if (countOfModifiedValues > 0) {
+							cout << endl << "Modified " << countOfModifiedValues << " values.";
+						}
+						else cout << endl << "No values matching filter have been found.";
+						binFile.close();
+						remove(tableFileName.c_str());
+						rename(copyBin.c_str(), tableFileName.c_str());
+					}
+				}
+				else cout << endl << "ERROR: Column not found";
+			}
+			else cout << endl << "ERROR: No such table exists";
+		}
 	}
 
+};
+
+class Import {
+private:
+	string args[10] = {};
+	int argCount = 0;
+	bool isValid = false;
+	CommandParser command;
+public:
+
+	Import(string args[], int argCount) {
+		if (argCount == 3) {
+			for (int i = 0; i < argCount; i++) {
+				this->args[i] = args[i];
+			}
+			this->argCount = argCount;
+			this->isValid = true;
+		}
+		else if (argCount > 3) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else cout << endl << "ERROR: Too few parameters";
+		if (this->isValid) {
+			string ext = args[2];
+			bool found = false;
+			if (ext.substr(ext.find_last_of(".") + 1) == "csv") {
+				found = true;
+			}
+			if (found) {
+				string importFileName = this->args[2];
+				string tableFileName = this->args[1] + ".dsc";
+				ifstream table(tableFileName);
+				if (table) {
+					ifstream imports(importFileName);
+					if (imports.is_open()) {
+						while (!imports.eof()) {
+							string line;
+							getline(imports, line);
+							string insertCommand = "INSERT INTO " + this->args[1] + " VALUES (" + line + ")";
+							if (command.checkExtraSpaces(insertCommand)) {				//Check if your command has any extra spaces
+								cout << endl << "ERROR: Make sure your command has no extra spaces (this is something we were unable to make work, sorry!)";
+							}
+							else if (!command.checkExtraSpaces(insertCommand)) {			//If the command respects the no extra space format, we can calculate the number of arguments in the string and verify it
+								command.computeArgCount(insertCommand);
+								command.breakString(insertCommand);
+							}
+							InsertInto cmd(command.args, command.getArgCount());
+						}
+					}
+				}
+				else cout << endl << "ERROR: No such table exists";
+			}
+			else cout << endl << "ERROR: Invalid text file extension detected";
+		}
+	}
 };
