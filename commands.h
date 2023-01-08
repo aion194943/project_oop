@@ -7,9 +7,9 @@ using namespace std;
 
 class CommandParser {
 private:
-	string command = "";
 	int argCount = 0;
 public:
+	string command = "";
 	string args[100] = {};
 	//constructor here
 
@@ -89,6 +89,7 @@ public:
 		}
 	}
 
+
 	friend void operator>>(istream& input, CommandParser& command);
 	friend void operator<<(ostream& console, CommandParser command);
 };
@@ -97,7 +98,7 @@ public:
 void operator>>(istream& input, CommandParser& command) {
 	getline(input, command.command);
 	if (command.checkExtraSpaces(command.command)) {				//Check if your command has any extra spaces
-		cout << endl << "ERROR: Make sure your command has no extra spaces (we didn't manage to make a function to remove extra spaces yet, perhaps in phase 2)";
+		cout << endl << "ERROR: Make sure your command has no extra spaces (this is something we were unable to make work, sorry!)";
 	}
 	else if (!command.checkExtraSpaces(command.command)) {			//If the command respects the no extra space format, we can calculate the number of arguments in the string and verify it
 		command.computeArgCount(command.command);
@@ -105,11 +106,21 @@ void operator>>(istream& input, CommandParser& command) {
 	}
 }
 
+
+
 //Overloading << to display the raw command (for testing purposes)
 void operator<<(ostream& console, CommandParser command) {
 	console << endl << command.command;
 }
 
+//From the list of command examples that shouldn't work in the google docs, this CreateTable should be able to pass all of them
+//However, there is one example of command that went through our mind (it isn't listed in the google docs) that will not give an error:
+
+//CREATE TABLE students ((id, integer, 1000, 0), (nume, text,)128, ’’, (grupa, text,50,’1000’))
+
+//This will work regardless of where the parantheses are positioned due to the way we conceived the validation (by counting the number of parantheses)
+//We do have an idea on how to fix it and it involves checking if the first and last character, respectively, of each 1st and 4th parameter, contain a left/right paranthesis and the beginning/end
+//However, we did not implement it yet due to lack of time on our part
 class CreateTable {
 private:
 	string args[100] = {};
@@ -120,6 +131,7 @@ private:
 	int* dimension = nullptr;
 	string default_value[50][100];
 	static int noColumns;
+
 	bool isValid = false;
 public:
 
@@ -181,6 +193,17 @@ public:
 							}
 							this->argCount = 3 + i;
 							this->isValid = true;
+							//cout << endl << this->argCount;
+							/*cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];*/
+							/*int count = 0;*/
+							/*for (int j = 1; j <= i / 4; j++) {
+								cout << endl << "Parameters for column " << j << ": ";
+								cout << endl << "  Column name: " << this->args[3*j+count];
+								cout << endl << "  Column type: " << this->args[3*j + 1 +count];
+								cout << endl << "  Column size: " << this->args[3*j + 2 +count];
+								cout << endl << "  Default value: " << this->args[3*j + 3 +count];
+								count++;
+							}*/
 							this->noColumns = i / 4;
 						}
 						else cout << endl << "ERROR: Invalid column type (must be text/integer/float)";
@@ -266,6 +289,16 @@ public:
 							}
 							this->argCount = 6 + i;
 							this->isValid = true;
+							/*cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+							int count = 0;
+							for (int j = 1; j <= i / 4; j++) {
+								cout << endl << "Parameters for column " << j << ": ";
+								cout << endl << "  Column name: " << this->args[3 * j + 3 + count];
+								cout << endl << "  Column type: " << this->args[3 * j + 4 + count];
+								cout << endl << "  Column size: " << this->args[3 * j + 5 + count];
+								cout << endl << "  Default value: " << this->args[3 * j + 6 + count];
+								count++;
+							}*/
 							this->noColumns = i / 4;
 						}
 						else cout << endl << "ERROR: Invalid column type (must be text/integer/float)";
@@ -309,6 +342,16 @@ public:
 		}
 		else return false;
 	}
+
+	//for testing purposes
+	/*void testPrintStuff(ostream& console) {
+		for (int i = 3; i < this->argCount; i++) {
+			console << this->args[i];
+			if (i != this->argCount - 1) {
+				console << endl;
+			}
+		}
+	}*/
 
 	string returnSpecificArg(int num) {
 		if (num > argCount && num < 0) {
@@ -548,7 +591,7 @@ bool operator==(CreateTable newTable1, CreateTable newTable2)
 
 class DropTable {
 private:
-	string args[100] = {};
+	string args[10] = {};
 	int argCount = 0;
 public:
 
@@ -558,8 +601,18 @@ public:
 				this->args[i] = args[i];
 			}
 			this->argCount = argCount;
-			cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
-			cout << endl << "Table name: " << this->args[2];
+			/*cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+			cout << endl << "Table name: " << this->args[2];*/
+			string fileName = this->args[2] + ".dsc";
+			string dataFileName = this->args[2] + ".dat";
+			const int res = remove(fileName.c_str());
+			if (res == 0) {
+				cout << endl << "Table " << args[2] << " dropped.";
+				remove(dataFileName.c_str());
+			}
+			else {
+				cout << endl << "ERROR: No such table exists in the database";
+			}
 		}
 		else if (argCount > 3) {
 			cout << endl << "ERROR: Too many parameters";
@@ -572,7 +625,7 @@ public:
 
 class DisplayTable {
 private:
-	string args[100] = {};
+	string args[10] = {};
 	int argCount = 0;
 public:
 
@@ -582,8 +635,38 @@ public:
 				this->args[i] = args[i];
 			}
 			this->argCount = argCount;
-			cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
-			cout << endl << "Table name: " << this->args[2];
+			/*cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+			cout << endl << "Table name: " << this->args[2];*/
+			string fileName = this->args[2] + ".dsc";
+			ifstream table(fileName);
+			if (table) {
+				string line;
+				getline(table, line);
+				cout << endl << "Displaying table: " << line;
+				int columnNumber = 1;
+				while (!table.eof()) {
+					getline(table, line);
+					string copy = line;
+					string token;
+					size_t pos = 0;
+					string argsCopy[4] = {};
+					int i = 0;
+					while ((pos = copy.find(",")) != string::npos) {
+						token = copy.substr(0, pos);
+						argsCopy[i] = token;
+						i++;
+						copy.erase(0, pos + 1);
+					}
+					argsCopy[i] = copy;
+					cout << endl << "Data for column " << columnNumber << ":";
+					cout << endl << "  Column name: " << argsCopy[0];
+					cout << endl << "  Column type: " << argsCopy[1];
+					cout << endl << "  Column size: " << argsCopy[2];
+					cout << endl << "  Column default value: " << argsCopy[3];
+					columnNumber++;
+				}
+			}
+			else cout << "ERROR: No such table exists";
 		}
 		else if (argCount > 3) {
 			cout << endl << "ERROR: Too many parameters";
@@ -596,7 +679,7 @@ public:
 
 class CreateIndex {
 private:
-	string args[100] = {};
+	string args[20] = {};
 	int argCount = 0;
 public:
 
@@ -662,7 +745,7 @@ public:
 
 class DropIndex {
 private:
-	string args[100] = {};
+	string args[10] = {};
 	int argCount = 0;
 public:
 
@@ -685,12 +768,9 @@ public:
 
 };
 
-
-//InsertInto doesn't have the column type validation that CreateTable has yet
-
 class InsertInto {
 private:
-	string args[100] = {};
+	string args[10] = {};
 	int argCount = 0;
 	string table_name = "";
 	string column_name = "";
@@ -722,22 +802,17 @@ public:
 					for (int j = 0; j <= i; j++) {
 						args[j + 4] = argsCopy[j];
 					}
-					if (argCount == 8) {
+					if (argCount >= 5) {
 						for (int i = 0; i < argCount; i++) {
 							this->args[i] = args[i];
 						}
 						this->argCount = argCount;
-						cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+						/*cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
 						cout << endl << "Table name: " << this->args[2];
-						//setTableName(this->args[2]);
-						cout << endl << "Column name: " << this->args[4];
-						//setColumnName(this->args[4]);
-						cout << endl << "Column type: " << this->args[5];
-						//setType(this->args[5]);
-						cout << endl << "Column size: " << this->args[6];
-						//setDimension(stoi(this->args[6]));
-						cout << endl << "Column default value: " << this->args[7];
-						//setDefaultValue(this->args[7]);
+						for (int j = 0; j <= i; j++) {
+							cout << endl << "Column value " << j+1 << ": " << args[j + 4];
+						}*/
+						this->isValid = true;
 					}
 					else cout << endl << "ERROR: Invalid parameter column format";
 				}
@@ -745,8 +820,8 @@ public:
 			}
 			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
 		}
-		else if (argCount > 5) {
-			cout << endl << "ERROR: Too many parameters";
+		else if (argCount != 5) {
+			cout << endl << "ERROR: Check your parameters (make sure there are no extra spaces, sorry for the inconvenience!)";
 		}
 		if (this->isValid) {
 			string tableFileName = this->args[2] + ".dsc";
@@ -766,24 +841,24 @@ public:
 					table.seekg(0, ios::beg);
 					getline(table, tableName);
 					while (!table.eof()) {
-							getline(table, dummyString);
-							string columnName, columnType, columnSize, defaultValue;
-							string copy = dummyString;
-							string token;
-							size_t pos = 0;
-							string argsCopy[4] = {};
-							int i = 0;
-							while ((pos = copy.find(",")) != string::npos) {
-									token = copy.substr(0, pos);
-									argsCopy[i] = token;
-									i++;
-									copy.erase(0, pos + 1);
-							}
-							argsCopy[i] = copy;
-							columnName = argsCopy[0];
-							columnType = argsCopy[1];
-							columnSize = argsCopy[2];
-							defaultValue = argsCopy[3];
+						getline(table, dummyString);
+						string columnName, columnType, columnSize, defaultValue;
+						string copy = dummyString;
+						string token;
+						size_t pos = 0;
+						string argsCopy[4] = {};
+						int i = 0;
+						while ((pos = copy.find(",")) != string::npos) {
+							token = copy.substr(0, pos);
+							argsCopy[i] = token;
+							i++;
+							copy.erase(0, pos + 1);
+						}
+						argsCopy[i] = copy;
+						columnName = argsCopy[0];
+						columnType = argsCopy[1];
+						columnSize = argsCopy[2];
+						defaultValue = argsCopy[3];
 					}*/
 					tableFileName = this->args[2] + ".dat";
 					ofstream binFile(tableFileName, ios::out | ios::app | ios::binary);
@@ -810,249 +885,542 @@ public:
 				else {
 					cout << endl << "ERROR: Number of values must be the same as the number of columns in the table definition";
 				}
-			else {
-				cout << endl << "ERROR: Too few parameters";
 			}
-
-			}
-
-			bool CheckColumnName(string arg) {
-				if (arg.front() == '(' && arg.back() == ')') {
-					return true;
-				}
-				else return false;
-			}
-
-			InsertInto(string newName, string newType)
-			{
-				this->column_name = newName;
-				this->type = newType;
-			}
-
-			InsertInto(string newTableName, string newName, string newType, int size, string newDefaultValue)
-			{
-				this->table_name = newTableName;
-				this->column_name = newName;
-				this->type = newType;
-				this->dimension = size;
-				this->default_value = newDefaultValue;
-			}
-
-			InsertInto(const InsertInto & column)
-			{
-				this->table_name = column.table_name;
-				this->column_name = column.column_name;
-				this->type = column.type;
-				this->dimension = column.dimension;
-				this->default_value = column.default_value;
-			}
-
-			string getTableName()
-			{
-				return this->table_name;
-			}
-
-			string getColumn()
-			{
-				return this->column_name;
-			}
-
-			string getType()
-			{
-				return this->type;
-			}
-
-			int getDimension()
-			{
-				return this->dimension;
-			}
-
-			string getDefaultValue()
-			{
-				return this->default_value;
-			}
-
-			void setTableName(string newTableName)
-			{
-				if (newTableName != "")
-				{
-					this->table_name = newTableName;
-				}
-				else
-				{
-					cout << "ERROR: Table name is missing";
-				}
-			}
-
-			void setColumnName(string newColumnName)
-			{
-				if (newColumnName != "")
-				{
-					this->column_name = newColumnName;
-				}
-				else
-				{
-					cout << "ERROR: Column name is missing";
-				}
-			}
-
-			void setType(string newType)
-			{
-				if (newType == "integer" || newType == "float" || newType == "text")
-				{
-					this->type = newType;
-				}
-				else
-				{
-					cout << "The type of the column is not correct";
-				}
-			}
-
-			void setDimension(int newDimension)
-			{
-				if (newDimension != 0 && newDimension > 0)
-				{
-					this->dimension = newDimension;
-				}
-				else
-				{
-					cout << "Incorrect dimension value";
-				}
-			}
-
-			void setDefaultValue(string newDefaultValue)
-			{
-				if (newDefaultValue != "")
-				{
-					this->default_value = newDefaultValue;
-				}
-				else
-				{
-					cout << "ERROR: Default value not specified";
-				}
-			}
-
-			//operators
-
-			InsertInto operator=(const InsertInto & newColumn)
-			{
-				if (newColumn.column_name == this->column_name)
-				{
-					return *this;
-				}
-				this->column_name = newColumn.column_name;
-				this->type = newColumn.type;
-				this->dimension = newColumn.dimension;
-				this->default_value = newColumn.default_value;
-				return *this;
-			}
-
-			InsertInto operator+(int value)
-			{
-				InsertInto result = *this;
-				result.dimension += value;
-				return result;
-			}
-
-			//post-incrementation
-			InsertInto operator++(int)
-			{
-				InsertInto result = *this;
-				result.dimension++;
-				return result;
-			}
-
-			//pre-incrementation
-			InsertInto operator++()
-			{
-				this->dimension++;
-				return *this;
-			}
-
-			InsertInto operator!()
-			{
-				InsertInto result = *this;
-				result.column_name = "";
-				result.type = "";
-				result.dimension = 0;
-				return result;
-			}
-
-			friend ostream& operator<<(ostream & console, InsertInto & column);
-			friend void operator>>(istream & input, InsertInto & column);
-
-		};
-
-		ostream& operator <<(ostream & console, InsertInto & column)
-		{
-			cout << endl << "----------------------" << endl;
-			cout << "The table in which the column will be inserted is: " << column.table_name << endl;
-			cout << "The column's name is: " << column.column_name << endl;
-			cout << "The column's type is: " << column.type << endl;
-			cout << "The column's size is: " << column.dimension << endl;
-			cout << "The column's default value is: " << column.default_value;
-			return console;
+			else cout << "ERROR: No such table exists";
 		}
+	}
 
-		void operator >>(istream & input, InsertInto & column)
-		{
-			cout << endl << "Table name: ";
-			input >> column.table_name;
-			cout << endl << "Column's name: ";
-			input >> column.column_name;
-			cout << endl << "Column's type: ";
-			input >> column.type;
-			cout << endl << "Column's size: ";
-			input >> column.dimension;
-			cout << endl << "Column's default value: ";
-			input >> column.default_value;
+	bool CheckColumnName(string arg) {
+		if (arg.front() == '(' && arg.back() == ')') {
+			return true;
 		}
+		else return false;
+	}
 
-		bool operator<(InsertInto newColumn1, InsertInto newColumn2)
+	InsertInto(string newName, string newType)
+	{
+		this->column_name = newName;
+		this->type = newType;
+	}
+
+	InsertInto(string newTableName, string newName, string newType, int size, string newDefaultValue)
+	{
+		this->table_name = newTableName;
+		this->column_name = newName;
+		this->type = newType;
+		this->dimension = size;
+		this->default_value = newDefaultValue;
+	}
+
+	InsertInto(const InsertInto& column)
+	{
+		this->table_name = column.table_name;
+		this->column_name = column.column_name;
+		this->type = column.type;
+		this->dimension = column.dimension;
+		this->default_value = column.default_value;
+	}
+
+	string getTableName()
+	{
+		return this->table_name;
+	}
+
+	string getColumn()
+	{
+		return this->column_name;
+	}
+
+	string getType()
+	{
+		return this->type;
+	}
+
+	int getDimension()
+	{
+		return this->dimension;
+	}
+
+	string getDefaultValue()
+	{
+		return this->default_value;
+	}
+
+	void setTableName(string newTableName)
+	{
+		if (newTableName != "")
 		{
-			if (newColumn1.getDefaultValue() < newColumn2.getDefaultValue())
-				return true;
-			else
-				return false;
+			this->table_name = newTableName;
 		}
-
-		bool operator==(InsertInto newColumn1, InsertInto newColumn2)
+		else
 		{
-			if (newColumn1.getDefaultValue() == newColumn2.getDefaultValue())
-				return true;
-			else
-				return false;
-		};
+			cout << "ERROR: Table name is missing";
+		}
+	}
 
-		class DeleteFrom {
-		private:
-			string args[100] = {};
-			int argCount = 0;
-		public:
+	void setColumnName(string newColumnName)
+	{
+		if (newColumnName != "")
+		{
+			this->column_name = newColumnName;
+		}
+		else
+		{
+			cout << "ERROR: Column name is missing";
+		}
+	}
 
-			DeleteFrom(string args[], int argCount) {
-				if (argCount == 7) {
-					if (args[3] == "WHERE" && args[5] == "=") {
-						for (int i = 0; i < argCount; i++) {
-							this->args[i] = args[i];
-						}
-						this->argCount = argCount;
-						cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
-						cout << endl << "Table name: " << this->args[2];
-						cout << endl << "Column name: " << this->args[4];
-						cout << endl << "Specified value: " << this->args[6];
+	void setType(string newType)
+	{
+		if (newType == "integer" || newType == "float" || newType == "text")
+		{
+			this->type = newType;
+		}
+		else
+		{
+			cout << "The type of the column is not correct";
+		}
+	}
+
+	void setDimension(int newDimension)
+	{
+		if (newDimension != 0 && newDimension > 0)
+		{
+			this->dimension = newDimension;
+		}
+		else
+		{
+			cout << "Incorrect dimension value";
+		}
+	}
+
+	void setDefaultValue(string newDefaultValue)
+	{
+		if (newDefaultValue != "")
+		{
+			this->default_value = newDefaultValue;
+		}
+		else
+		{
+			cout << "ERROR: Default value not specified";
+		}
+	}
+
+	//operators
+
+	InsertInto operator=(const InsertInto& newColumn)
+	{
+		if (newColumn.column_name == this->column_name)
+		{
+			return *this;
+		}
+		this->column_name = newColumn.column_name;
+		this->type = newColumn.type;
+		this->dimension = newColumn.dimension;
+		this->default_value = newColumn.default_value;
+		return *this;
+	}
+
+	InsertInto operator+(int value)
+	{
+		InsertInto result = *this;
+		result.dimension += value;
+		return result;
+	}
+
+	//post-incrementation
+	InsertInto operator++(int)
+	{
+		InsertInto result = *this;
+		result.dimension++;
+		return result;
+	}
+
+	//pre-incrementation
+	InsertInto operator++()
+	{
+		this->dimension++;
+		return *this;
+	}
+
+	InsertInto operator!()
+	{
+		InsertInto result = *this;
+		result.column_name = "";
+		result.type = "";
+		result.dimension = 0;
+		return result;
+	}
+
+	friend ostream& operator<<(ostream& console, InsertInto& column);
+	friend void operator>>(istream& input, InsertInto& column);
+
+};
+
+ostream& operator <<(ostream& console, InsertInto& column)
+{
+	cout << endl << "----------------------" << endl;
+	cout << "The table in which the column will be inserted is: " << column.table_name << endl;
+	cout << "The column's name is: " << column.column_name << endl;
+	cout << "The column's type is: " << column.type << endl;
+	cout << "The column's size is: " << column.dimension << endl;
+	cout << "The column's default value is: " << column.default_value;
+	return console;
+}
+
+void operator >>(istream& input, InsertInto& column)
+{
+	cout << endl << "Table name: ";
+	input >> column.table_name;
+	cout << endl << "Column's name: ";
+	input >> column.column_name;
+	cout << endl << "Column's type: ";
+	input >> column.type;
+	cout << endl << "Column's size: ";
+	input >> column.dimension;
+	cout << endl << "Column's default value: ";
+	input >> column.default_value;
+}
+
+bool operator<(InsertInto newColumn1, InsertInto newColumn2)
+{
+	if (newColumn1.getDefaultValue() < newColumn2.getDefaultValue())
+		return true;
+	else
+		return false;
+}
+
+bool operator==(InsertInto newColumn1, InsertInto newColumn2)
+{
+	if (newColumn1.getDefaultValue() == newColumn2.getDefaultValue())
+		return true;
+	else
+		return false;
+};
+
+class DeleteFrom {
+private:
+	string args[10] = {};
+	int argCount = 0;
+	bool isValid = false;
+public:
+
+	DeleteFrom(string args[], int argCount) {
+		if (argCount == 7) {
+			if (args[3] == "WHERE" && args[5] == "=") {
+				for (int i = 0; i < argCount; i++) {
+					this->args[i] = args[i];
+				}
+				this->argCount = argCount;
+				/*cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
+				cout << endl << "Table name: " << this->args[2];
+				cout << endl << "Column name: " << this->args[4];
+				cout << endl << "Specified value: " << this->args[6];*/
+				this->isValid = true;
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+		}
+		else if (argCount > 7) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+		if (this->isValid) {
+			string tableFileName = this->args[2] + ".dsc";
+			string copyBin;
+			ifstream table(tableFileName);
+			if (table) {
+				string tableName;
+				getline(table, tableName);
+				string dummyString;
+				int noOfColumns = 0;
+				string columnNames[100] = {};
+				while (!table.eof()) {
+					getline(table, dummyString);
+					string copy = dummyString;
+					string token;
+					size_t pos = 0;
+					string argsCopy[4] = {};
+					int i = 0;
+					while ((pos = copy.find(",")) != string::npos) {
+						token = copy.substr(0, pos);
+						argsCopy[i] = token;
+						i++;
+						copy.erase(0, pos + 1);
 					}
-					else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+					argsCopy[i] = copy;
+					columnNames[noOfColumns] = argsCopy[0];
+					noOfColumns++;
 				}
-				else if (argCount > 7) {
-					cout << endl << "ERROR: Too many parameters";
+				bool columnExists = false;
+				int columnPosition;
+				for (int i = 0; i < noOfColumns; i++) {
+					if (columnNames[i] == args[4]) {
+						columnPosition = i;
+						columnExists = true;
+					}
 				}
-				else {
-					cout << endl << "ERROR: Too few parameters";
+				if (columnExists) {
+					tableFileName = this->args[2] + ".dat";
+					ifstream binFile(tableFileName, ios::in | ios::binary);
+					if (binFile.is_open()) {
+						binFile.seekg(0, ios::end);
+						int amountOfValues = binFile.tellg() / 1000;
+						binFile.clear();
+						binFile.seekg(0, ios::beg);
+						string valuesExtracted;
+						int countOfDeletedValues = 0;
+						for (int i = 1; i <= amountOfValues; i++) {
+							char p;
+							bool isLastCharacter = false;
+							valuesExtracted = "";
+							while (binFile.get(p)) {
+								if (p != '\0') {
+									valuesExtracted += p;
+								}
+								else break;
+							}
+							cout << endl << valuesExtracted;
+
+							string copy = valuesExtracted;
+							string token;
+							size_t pos = 0;
+							string argsCopy[100] = {};
+							int j = 0;
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[j] = token;
+								j++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[j] = copy;
+
+							if (argsCopy[columnPosition] == this->args[6]) {
+								/*cout << "Yes, there is a value like that";*/
+								countOfDeletedValues++;
+							}
+							else {
+								copyBin = "." + this->args[2] + "_copy.dat";
+								ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
+								int size = valuesExtracted.size() + 1;
+								int bufferSize = 1000 - size;
+								char* buffer = new char[bufferSize];
+								copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
+								copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
+								delete[] buffer;
+								copyOfBinFile.close();
+							}
+							binFile.clear();
+							int nextPos = i * 1000;
+							binFile.seekg(nextPos);
+						}
+						if (countOfDeletedValues > 0) {
+							cout << endl << "Deleted " << countOfDeletedValues << " values.";
+						}
+						else cout << endl << "No values matching filter have been found.";
+						binFile.close();
+						remove(tableFileName.c_str());
+						rename(copyBin.c_str(), tableFileName.c_str());
+					}
 				}
-				if (this->isValid) {
-					string tableFileName = this->args[2] + ".dsc";
-					string copyBin;
+				else cout << "ERROR: Column not found";
+			}
+			else cout << endl << "ERROR: No such table exists";
+		}
+	}
+};
+
+class Select {
+private:
+	string args[20] = {};
+	int argCount = 0;
+	string table_name = "";
+	string* column_names = nullptr;
+	static int noColumns;
+
+	bool isValid = false;
+	bool usesAll = false;
+	bool usesWhere = false;
+
+	int wherePos;
+	int fromPos;
+	int columnCount;
+public:
+
+	Select(string args[], int argCount) {
+		if (argCount >= 4) {
+			if (args[1] == "ALL" && args[2] == "FROM") {
+				if (args[4] == "WHERE" && args[6] == "=") {
+					for (int i = 0; i < argCount; i++) {
+						this->args[i] = args[i];
+					}
+					this->argCount = argCount;
+					/*cout << endl << "You used the command: " << this->args[0];
+					cout << endl << "You selected the columns: " << this->args[1];
+					cout << endl << "Table name: " << this->args[3];
+					cout << endl << "Has filter: yes";
+					cout << endl << "Column being checked in WHERE: " << this->args[5];
+					cout << endl << "Value being checked in WHERE: " << this->args[7];*/
+					this->isValid = true;
+					this->usesAll = true;
+					this->usesWhere = true;
+				}
+				else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
+					cout << endl << "ERROR: WHERE formatting incorrectly specified";
+				}
+				else if (args[4] == "") {
+					for (int i = 0; i < argCount; i++) {
+						this->args[i] = args[i];
+					}
+					this->argCount = argCount;
+					//cout << endl << "You used the command: " << this->args[0];
+					//cout << endl << "You selected the columns: " << this->args[1];
+					//cout << endl << "Table name: " << this->args[3];
+					//cout << endl << "Has filter: no";
+					this->isValid = true;
+					this->usesAll = true;
+				}
+				else cout << endl << "ERROR: Invalid WHERE or table name format";
+			}
+			else if (args[1] != "ALL" && args[2] == "FROM") {
+				if (CheckColumnName(args[1]) == true) {
+					if (args[4] == "WHERE" && args[6] == "=" && args[7] != "" && args[8] == "") {
+						args[1].pop_back();
+						args[1].erase(args[1].begin());
+						size_t pos = 0;
+						string copy = args[1];
+						string argsCopy[100] = {};
+						string token;
+						int i = 0;
+						if (copy.find(",") != string::npos) {
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[0 + i] = token;
+								i++;
+								argCount++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[i] = copy;
+
+							for (int j = argCount - 1; j > i; j--) {
+								args[j] = args[j - i + 1];
+							}
+							for (int j = 0; j <= i; j++) {
+								args[j + 1] = argsCopy[j];
+							}
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							this->argCount = argCount;
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							this->argCount = argCount;
+							//cout << endl << "You used the command: " << this->args[0];
+							//cout << endl << "You selected the columns: ";
+							//for (int j = 1; j <= i + 1; j++) {
+							//	cout << this->args[j] << " ";
+							//}
+							//cout << endl << "Table name: " << this->args[i + 2];
+							//cout << endl << "Has filter: yes";
+							//cout << endl << "Column being checked in WHERE: " << this->args[i + 4];
+							//cout << endl << "Value being checked in WHERE: " << this->args[i + 6];
+							this->isValid = true;
+							this->usesWhere = true;
+							this->wherePos = i + 3;
+							this->columnCount = i + 1;
+						}
+						else {
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							this->argCount = argCount;
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							//cout << endl << "You used the command: " << this->args[0];
+							//cout << endl << "You selected the columns: " << this->args[1];
+							//cout << endl << "Table name: " << this->args[3];
+							//cout << endl << "Has filter: yes";
+							//cout << endl << "Column being checked in WHERE: " << this->args[5];
+							//cout << endl << "Value being checked in WHERE: " << this->args[7];
+							this->isValid = true;
+							this->usesWhere = true;
+						}
+
+					}
+					else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
+						cout << endl << "ERROR: WHERE formatting incorrectly specified";
+					}
+					else if (args[4] == "")
+					{
+						args[1].pop_back();
+						args[1].erase(args[1].begin());
+						size_t pos = 0;
+						string copy = args[1];
+						string argsCopy[100] = {};
+						string token;
+						int i = 0;
+						if (copy.find(",") != string::npos) {
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[i] = token;
+								i++;
+								argCount++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[i] = copy;
+							for (int j = argCount - 1; j > i; j--) {
+								args[j] = args[j - i + 1];
+							}
+							for (int j = 0; j <= i; j++) {
+								args[j + 1] = argsCopy[j];
+							}
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							this->argCount = argCount;
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							this->argCount = argCount;
+							//cout << endl << "You used the command: " << this->args[0];
+							//cout << endl << "You selected the columns: ";
+							//for (int j = 1; j <= i + 1; j++) {
+							//	cout << this->args[j] << " ";
+							//}
+							//cout << endl << "Table name: " << this->args[i + 2];
+							//cout << endl << "Has filter: no";
+							this->fromPos = i + 2;
+							this->columnCount = i + 1;
+							this->isValid = true;
+						}
+						else {
+							for (int i = 0; i < argCount; i++) {
+								this->args[i] = args[i];
+							}
+							this->argCount = argCount;
+							//cout << endl << "You used the command: " << this->args[0];
+							//cout << endl << "You selected the columns: " << this->args[1];
+							//cout << endl << "Table name: " << this->args[3];
+							//cout << endl << "Has filter: no";
+							this->fromPos = 2;
+							this->columnCount = 1;
+							this->isValid = true;
+						}
+					}
+					else cout << endl << "ERROR: Invalid WHERE or table name format";
+				}
+				else cout << endl << "ERROR: Invalid column format";
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+		}
+		if (this->isValid) {
+			if (this->usesAll) {
+				if (this->usesWhere) {
+					//cout << endl << "select all from where";
+					string tableFileName = this->args[3] + ".dsc";
 					ifstream table(tableFileName);
 					if (table) {
 						string tableName;
@@ -1080,13 +1448,21 @@ public:
 						bool columnExists = false;
 						int columnPosition;
 						for (int i = 0; i < noOfColumns; i++) {
-							if (columnNames[i] == args[4]) {
+							if (columnNames[i] == this->args[5]) {
 								columnPosition = i;
 								columnExists = true;
 							}
 						}
 						if (columnExists) {
-							tableFileName = this->args[2] + ".dat";
+							cout << endl;
+							for (int k = 0; k < noOfColumns; k++) {
+								if (k != noOfColumns - 1) {
+									cout << columnNames[k] << "/";
+								}
+								else cout << columnNames[k];
+							}
+							tableFileName = this->args[3] + ".dat";
+							int noOfSelects = 0;
 							ifstream binFile(tableFileName, ios::in | ios::binary);
 							if (binFile.is_open()) {
 								binFile.seekg(0, ios::end);
@@ -1094,7 +1470,6 @@ public:
 								binFile.clear();
 								binFile.seekg(0, ios::beg);
 								string valuesExtracted;
-								int countOfDeletedValues = 0;
 								for (int i = 1; i <= amountOfValues; i++) {
 									char p;
 									bool isLastCharacter = false;
@@ -1105,7 +1480,8 @@ public:
 										}
 										else break;
 									}
-									cout << endl << valuesExtracted;
+									/*cout << endl << valuesExtracted;*/
+
 									string copy = valuesExtracted;
 									string token;
 									size_t pos = 0;
@@ -1118,588 +1494,731 @@ public:
 										copy.erase(0, pos + 1);
 									}
 									argsCopy[j] = copy;
-									if (argsCopy[columnPosition] == this->args[6]) {
-										/*cout << "Yes, there is a value like that";*/
-										countOfDeletedValues++;
-									}
-									else {
-										copyBin = "." + this->args[2] + "_copy.dat";
-										ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
-										int size = valuesExtracted.size() + 1;
-										int bufferSize = 1000 - size;
-										char* buffer = new char[bufferSize];
-										copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
-										copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
-										delete[] buffer;
-										copyOfBinFile.close();
+
+									if (argsCopy[columnPosition] == this->args[7]) {
+										cout << endl << "------------------------------------------------------------------";
+										for (int k = 0; k < noOfColumns; k++) {
+											cout << endl << "  " << columnNames[k] << ": " << argsCopy[k];
+										}
+										noOfSelects++;
 									}
 									binFile.clear();
 									int nextPos = i * 1000;
 									binFile.seekg(nextPos);
 								}
-								if (countOfDeletedValues > 0) {
-									cout << endl << "Deleted " << countOfDeletedValues << " values.";
+								if (noOfSelects == 0) {
+									cout << endl << endl << "No values found.";
 								}
-								else cout << endl << "No values matching filter have been found.";
+								else cout << endl << endl << "Selected " << noOfSelects << " values.";
 								binFile.close();
-								remove(tableFileName.c_str());
-								rename(copyBin.c_str(), tableFileName.c_str());
 							}
 						}
-						else cout << "ERROR: Column not found";
+						else cout << endl << "ERROR: Column not found";
 					}
 					else cout << endl << "ERROR: No such table exists";
 				}
-			};
-
-			class Select {
-			private:
-				string args[100] = {};
-				int argCount = 0;
-				string table_name = "";
-				string* column_names = nullptr;
-				static int noColumns;
-			public:
-
-				Select(string args[], int argCount) {
-					if (argCount >= 4) {
-						if (args[1] == "ALL" && args[2] == "FROM") {
-							if (args[4] == "WHERE" && args[6] == "=") {
-								for (int i = 0; i < argCount; i++) {
-									this->args[i] = args[i];
-								}
-								this->argCount = argCount;
-								cout << endl << "You used the command: " << this->args[0];
-								cout << endl << "You selected the columns: " << this->args[1];
-								cout << endl << "Table name: " << this->args[3];
-								cout << endl << "Has filter: yes";
-								cout << endl << "Column being checked in WHERE: " << this->args[5];
-								cout << endl << "Value being checked in WHERE: " << this->args[7];
+				else {
+					//cout << endl << "select all from";
+					string tableFileName = this->args[3] + ".dsc";
+					ifstream table(tableFileName);
+					if (table) {
+						string tableName;
+						getline(table, tableName);
+						string dummyString;
+						int noOfColumns = 0;
+						string columnNames[100] = {};
+						while (!table.eof()) {
+							getline(table, dummyString);
+							string copy = dummyString;
+							string token;
+							size_t pos = 0;
+							string argsCopy[4] = {};
+							int i = 0;
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[i] = token;
+								i++;
+								copy.erase(0, pos + 1);
 							}
-							else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
-								cout << endl << "ERROR: WHERE formatting incorrectly specified";
-							}
-							else if (args[4] == "") {
-								for (int i = 0; i < argCount; i++) {
-									this->args[i] = args[i];
-								}
-								this->argCount = argCount;
-								cout << endl << "You used the command: " << this->args[0];
-								cout << endl << "You selected the columns: " << this->args[1];
-								cout << endl << "Table name: " << this->args[3];
-								cout << endl << "Has filter: no";
-							}
-							else cout << endl << "ERROR: Invalid WHERE or table name format";
+							argsCopy[i] = copy;
+							columnNames[noOfColumns] = argsCopy[0];
+							noOfColumns++;
 						}
-						else if (args[1] != "ALL" && args[2] == "FROM") {
-							if (CheckColumnName(args[1]) == true) {
-								if (args[4] == "WHERE" && args[6] == "=" && args[7] != "" && args[8] == "") {
-									args[1].pop_back();
-									args[1].erase(args[1].begin());
-									size_t pos = 0;
-									string copy = args[1];
-									string argsCopy[100] = {};
-									string token;
-									int i = 0;
-									if (copy.find(",") != string::npos) {
-										while ((pos = copy.find(",")) != string::npos) {
-											token = copy.substr(0, pos);
-											argsCopy[0 + i] = token;
-											i++;
-											argCount++;
-											copy.erase(0, pos + 1);
-										}
-										argsCopy[i] = copy;
-
-										for (int j = argCount - 1; j > i; j--) {
-											args[j] = args[j - i + 1];
-										}
-										for (int j = 0; j <= i; j++) {
-											args[j + 1] = argsCopy[j];
-										}
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										this->argCount = argCount;
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										this->argCount = argCount;
-										cout << endl << "You used the command: " << this->args[0];
-										cout << endl << "You selected the columns: ";
-										for (int j = 1; j <= i + 1; j++) {
-											cout << this->args[j] << " ";
-										}
-										cout << endl << "Table name: " << this->args[i + 2];
-										cout << endl << "Has filter: yes";
-										cout << endl << "Column being checked in WHERE: " << this->args[i + 4];
-										cout << endl << "Value being checked in WHERE: " << this->args[i + 6];
+						cout << endl;
+						for (int k = 0; k < noOfColumns; k++) {
+							if (k != noOfColumns - 1) {
+								cout << columnNames[k] << "/";
+							}
+							else cout << columnNames[k];
+						}
+						tableFileName = this->args[3] + ".dat";
+						int noOfSelects = 0;
+						ifstream binFile(tableFileName, ios::in | ios::binary);
+						if (binFile.is_open()) {
+							binFile.seekg(0, ios::end);
+							int amountOfValues = binFile.tellg() / 1000;
+							binFile.clear();
+							binFile.seekg(0, ios::beg);
+							string valuesExtracted;
+							for (int i = 1; i <= amountOfValues; i++) {
+								char p;
+								bool isLastCharacter = false;
+								valuesExtracted = "";
+								while (binFile.get(p)) {
+									if (p != '\0') {
+										valuesExtracted += p;
 									}
-									else {
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										this->argCount = argCount;
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										cout << endl << "You used the command: " << this->args[0];
-										cout << endl << "You selected the columns: " << this->args[1];
-										cout << endl << "Table name: " << this->args[3];
-										cout << endl << "Has filter: yes";
-										cout << endl << "Column being checked in WHERE: " << this->args[5];
-										cout << endl << "Value being checked in WHERE: " << this->args[7];
-									}
-
+									else break;
 								}
-								else if (args[4] == "WHERE" && (args[5] == "" || args[6] != "=" || args[7] == "")) {
-									cout << endl << "ERROR: WHERE formatting incorrectly specified";
-								}
-								else if (args[4] == "")
-								{
-									args[1].pop_back();
-									args[1].erase(args[1].begin());
-									size_t pos = 0;
-									string copy = args[1];
-									string argsCopy[100] = {};
-									string token;
-									int i = 0;
-									if (copy.find(",") != string::npos) {
-										while ((pos = copy.find(",")) != string::npos) {
-											token = copy.substr(0, pos);
-											argsCopy[i] = token;
-											i++;
-											argCount++;
-											copy.erase(0, pos + 1);
-										}
-										argsCopy[i] = copy;
-										for (int j = argCount - 1; j > i; j--) {
-											args[j] = args[j - i + 1];
-										}
-										for (int j = 0; j <= i; j++) {
-											args[j + 1] = argsCopy[j];
-										}
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										this->argCount = argCount;
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										this->argCount = argCount;
-										cout << endl << "You used the command: " << this->args[0];
-										cout << endl << "You selected the columns: ";
-										for (int j = 1; j <= i + 1; j++) {
-											cout << this->args[j] << " ";
-										}
-										cout << endl << "Table name: " << this->args[i + 2];
-										cout << endl << "Has filter: no";
-									}
-									else {
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										this->argCount = argCount;
-										for (int i = 0; i < argCount; i++) {
-											this->args[i] = args[i];
-										}
-										cout << endl << "You used the command: " << this->args[0];
-										cout << endl << "You selected the columns: " << this->args[1];
-										cout << endl << "Table name: " << this->args[3];
-										cout << endl << "Has filter: no";
-									}
-								}
-								else cout << endl << "ERROR: Invalid WHERE or table name format";
-							}
-							else cout << endl << "ERROR: Invalid column format";
-						}
-						else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
-					}
-				}
+								/*cout << endl << valuesExtracted;*/
 
-				bool CheckColumnName(string arg) {
-					if (arg.front() == '(' && arg.back() == ')') {
-						string copy = arg;
-						copy.pop_back();
-						copy.erase(copy.begin());
-						if (copy != "") {
-							return true;
-						}
-						else return false;
-					}
-					else return false;
-				}
-
-				string* getColumns()
-				{
-					return this->column_names;
-				}
-
-				string getTableName()
-				{
-					return this->table_name;
-				}
-
-				static int getNoColumns()
-				{
-					return Select::noColumns;
-				}
-
-				void setColumns(string* newColumns, int newNoColumns)
-				{
-					if (newColumns != nullptr && newNoColumns > 0)
-					{
-						if (this->column_names)
-						{
-							delete[] this->column_names;
-						}
-						this->column_names = new string[newNoColumns];
-						memcpy(this->column_names, newColumns, sizeof(string) * newNoColumns);
-						this->noColumns = newNoColumns;
-					}
-				}
-
-				void setTableName(string newTableName)
-				{
-					if (newTableName != "")
-					{
-						this->table_name = newTableName;
-					}
-					else
-					{
-						cout << "ERROR: Table name is missing";
-					}
-				}
-
-				Select(string newTableName)
-				{
-					this->table_name = newTableName;
-				}
-
-				Select(string newTableName, string* newPoints, int noColumns)
-				{
-					this->table_name = newTableName;
-					this->setColumns(newPoints, noColumns);
-				}
-
-				Select(const Select& selection)
-				{
-					this->table_name = selection.table_name;
-					this->setColumns(selection.column_names, selection.noColumns);
-				}
-
-				~Select()
-				{
-					if (this->column_names)
-					{
-						delete[] this->column_names;
-					}
-				}
-
-				//operators
-
-				Select operator=(const Select& selection)
-				{
-					if (selection.table_name == this->table_name)
-					{
-						return *this;
-					}
-					this->table_name = selection.table_name;
-					this->setColumns(selection.column_names, selection.noColumns);
-					return *this;
-				}
-
-				Select operator!()
-				{
-					Select result = *this;
-					result.column_names = nullptr;
-					result.noColumns = 0;
-					return result;
-				}
-
-				explicit operator int()
-				{
-					return this->getNoColumns();
-				}
-
-				friend ostream& operator<<(ostream& console, Select& selection);
-				friend void operator>>(istream& input, Select& selection);
-				friend Select operator+(Select& selection, string text);
-			};
-
-			int Select::noColumns = 0;
-
-			ostream& operator <<(ostream& console, Select& selection)
-			{
-				cout << endl << "----------------------" << endl;
-				cout << "The table name is: " << selection.table_name << endl;
-				if (selection.noColumns > 0)
-				{
-					cout << "The number of columns is: " << selection.noColumns << endl;
-					for (int i = 0; i < selection.noColumns; i++)
-					{
-						cout << "Name of column " << i << " is " << selection.column_names[i] << endl;
-					}
-				}
-				return console;
-			}
-
-			void operator >>(istream& input, Select& selection)
-			{
-				cout << endl << "Table name ";
-				input >> selection.table_name;
-				cout << "The number of columns is ";
-				int no;
-				input >> no;
-				string* columns = new string[no];
-				for (int i = 0; i < no; i++)
-				{
-					cout << endl << "The name of column " << i + 1 << " is: ";
-					input >> columns[i];
-				}
-				selection.setColumns(columns, no);
-			}
-
-			Select operator+(Select& selection, string text)
-			{
-				Select result = selection;
-				string* newColumns = new string[selection.noColumns + 1];
-				for (int i = 0; i < selection.noColumns; i++)
-				{
-					newColumns[i] = selection.column_names[i];
-				}
-				newColumns[selection.noColumns] = text;
-				result.setColumns(newColumns, selection.noColumns + 1);
-				return result;
-			}
-
-			bool operator>(Select selection1, Select selection2)
-			{
-				if (selection1.getNoColumns() > selection2.getNoColumns())
-					return true;
-				else
-					return false;
-			}
-
-			bool operator==(Select selection1, Select selection2)
-			{
-				if (selection1.getNoColumns() == selection2.getNoColumns())
-					return true;
-				else
-					return false;
-			};
-
-			class Update {
-			private:
-				string args[20] = {};
-				int argCount = 0;
-				bool isValid = false;
-			public:
-
-				Update(string args[], int argCount) {
-					if (argCount == 10) {
-						if (args[2] == "SET" && args[4] == "=" && args[6] == "WHERE" && args[8] == "=") {
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							//cout << endl << "You used the command: " << this->args[0];
-							//cout << endl << "Table name: " << this->args[1];
-							//cout << endl << "Column to set: " << this->args[3];
-							//cout << endl << "Value to set: " << this->args[5];
-							//cout << endl << "Column being checked in WHERE: " << this->args[7];
-							//cout << endl << "Value being checked in WHERE: " << this->args[9];
-							this->isValid = true;
-						}
-						else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
-					}
-					else if (argCount > 10) {
-						cout << endl << "ERROR: Too many parameters";
-					}
-					else {
-						cout << endl << "ERROR: Too few parameters";
-					}
-					if (this->isValid) {
-						string tableFileName = this->args[1] + ".dsc";
-						string copyBin;
-						ifstream table(tableFileName);
-						if (table) {
-							string tableName;
-							getline(table, tableName);
-							string dummyString;
-							int noOfColumns = 0;
-							string columnNames[100] = {};
-							while (!table.eof()) {
-								getline(table, dummyString);
-								string copy = dummyString;
+								string copy = valuesExtracted;
 								string token;
 								size_t pos = 0;
-								string argsCopy[4] = {};
-								int i = 0;
+								string argsCopy[100] = {};
+								int j = 0;
 								while ((pos = copy.find(",")) != string::npos) {
 									token = copy.substr(0, pos);
-									argsCopy[i] = token;
-									i++;
+									argsCopy[j] = token;
+									j++;
 									copy.erase(0, pos + 1);
 								}
-								argsCopy[i] = copy;
-								columnNames[noOfColumns] = argsCopy[0];
-								noOfColumns++;
-							}
-							bool columnExists = false;
-							int columnPosition;
-							int columnToModifyPosition;
-							for (int i = 0; i < noOfColumns; i++) {
-								if (columnNames[i] == args[3]) {
-									columnToModifyPosition = i;
-								}
-								if (columnNames[i] == args[7]) {
-									columnPosition = i;
-									columnExists = true;
-								}
-							}
-							if (columnExists) {
-								tableFileName = this->args[1] + ".dat";
-								ifstream binFile(tableFileName, ios::in | ios::binary);
-								if (binFile.is_open()) {
-									binFile.seekg(0, ios::end);
-									int amountOfValues = binFile.tellg() / 1000;
-									binFile.clear();
-									binFile.seekg(0, ios::beg);
-									string valuesExtracted;
-									int countOfModifiedValues = 0;
-									for (int i = 1; i <= amountOfValues; i++) {
-										char p;
-										bool isLastCharacter = false;
-										valuesExtracted = "";
-										while (binFile.get(p)) {
-											if (p != '\0') {
-												valuesExtracted += p;
-											}
-											else break;
-										}
-										/*cout << endl << valuesExtracted;*/
+								argsCopy[j] = copy;
 
-										string copy = valuesExtracted;
-										string token;
-										size_t pos = 0;
-										string argsCopy[100] = {};
-										int j = 0;
-										while ((pos = copy.find(",")) != string::npos) {
-											token = copy.substr(0, pos);
-											argsCopy[j] = token;
-											j++;
-											copy.erase(0, pos + 1);
+								cout << endl << "------------------------------------------------------------------";
+								for (int k = 0; k < noOfColumns; k++) {
+									cout << endl << "  " << columnNames[k] << ": " << argsCopy[k];
+								}
+								noOfSelects++;
+								binFile.clear();
+								int nextPos = i * 1000;
+								binFile.seekg(nextPos);
+							}
+							if (noOfSelects == 0) {
+								cout << endl << endl << "No values found.";
+							}
+							else cout << endl << endl << "Selected " << noOfSelects << " values.";
+							binFile.close();
+						}
+					}
+					else cout << endl << "ERROR: No such table exists";
+				}
+			}
+			else {
+				if (this->usesWhere) {
+					//cout << endl << "select (c1,c2,...) from where";
+					string tableFileName = this->args[3] + ".dsc";
+					ifstream table(tableFileName);
+					if (table) {
+						string tableName;
+						getline(table, tableName);
+						string dummyString;
+						int noOfColumns = 0;
+						string columnNames[100] = {};
+						while (!table.eof()) {
+							getline(table, dummyString);
+							string copy = dummyString;
+							string token;
+							size_t pos = 0;
+							string argsCopy[4] = {};
+							int i = 0;
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[i] = token;
+								i++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[i] = copy;
+							columnNames[noOfColumns] = argsCopy[0];
+							noOfColumns++;
+						}
+						cout << endl;
+						string checkedColumns[100] = {};
+						bool columnExists = true;
+						for (int i = 0; i < this->columnCount; i++) {
+							bool isOk = false;
+							for (int j = 0; j < noOfColumns; j++) {
+								if (this->args[i + 1] == columnNames[j]) {
+									checkedColumns[i] = this->args[i + 1];
+									isOk = true;
+								}
+							}
+							if (!isOk) {
+								columnExists = false;
+							}
+						}
+						for (int i = 0; i < this->columnCount; i++) {
+							if (i != this->columnCount - 1) {
+								cout << checkedColumns[i] << "/";
+							}
+							else cout << checkedColumns[i];
+						}
+						int columnPosition;
+						for (int i = 0; i < noOfColumns; i++) {
+							if (columnNames[i] == args[5]) {
+								columnPosition = i;
+								columnExists = true;
+							}
+						}
+						int noOfSelects = 0;
+						if (columnExists) {
+							tableFileName = this->args[3] + ".dat";
+							ifstream binFile(tableFileName, ios::in | ios::binary);
+							if (binFile.is_open()) {
+								binFile.seekg(0, ios::end);
+								int amountOfValues = binFile.tellg() / 1000;
+								binFile.clear();
+								binFile.seekg(0, ios::beg);
+								string valuesExtracted;
+								for (int i = 1; i <= amountOfValues; i++) {
+									char p;
+									bool isLastCharacter = false;
+									valuesExtracted = "";
+									while (binFile.get(p)) {
+										if (p != '\0') {
+											valuesExtracted += p;
 										}
-										argsCopy[j] = copy;
+										else break;
+									}
+									/*cout << endl << valuesExtracted;*/
 
-										if (argsCopy[columnPosition] == this->args[9]) {
-											/*cout << "Yes, there is a value like that";*/
-											argsCopy[columnToModifyPosition] = this->args[5];
-											countOfModifiedValues++;
-											valuesExtracted = "";
-											for (int k = 0; k <= j; k++) {
-												if (k != j) {
-													valuesExtracted = valuesExtracted + argsCopy[k] + ",";
+									string copy = valuesExtracted;
+									string token;
+									size_t pos = 0;
+									string argsCopy[100] = {};
+									int j = 0;
+									while ((pos = copy.find(",")) != string::npos) {
+										token = copy.substr(0, pos);
+										argsCopy[j] = token;
+										j++;
+										copy.erase(0, pos + 1);
+									}
+									argsCopy[j] = copy;
+
+									bool wasAdded = false;
+									if (argsCopy[columnPosition] == this->args[7]) {
+										cout << endl << "------------------------------------------------------------------";
+										for (int k = 0; k < this->columnCount; k++) {
+											for (int l = 0; l < noOfColumns; l++) {
+												if (columnNames[l] == checkedColumns[k]) {
+													cout << endl << "  " << columnNames[l] << ": " << argsCopy[l];
+													wasAdded = true;
 												}
-												else valuesExtracted = valuesExtracted + argsCopy[k];
 											}
-											/*cout << endl << valuesExtracted;*/
-
-											copyBin = "." + this->args[1] + "_copy.dat";
-											ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
-											int size = valuesExtracted.size() + 1;
-											int bufferSize = 1000 - size;
-											char* buffer = new char[bufferSize];
-											copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
-											copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
-											delete[] buffer;
-											copyOfBinFile.close();
 										}
+									}
+									if (wasAdded) {
+										noOfSelects++;
+									}
+									binFile.clear();
+									int nextPos = i * 1000;
+									binFile.seekg(nextPos);
+								}
+								if (noOfSelects == 0) {
+									cout << endl << endl << "No values found.";
+								}
+								else cout << endl << endl << "Selected " << noOfSelects << " values.";
+								binFile.close();
+							}
+						}
 
-										else {
-											copyBin = "." + this->args[1] + "_copy.dat";
-											ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
-											int size = valuesExtracted.size() + 1;
-											int bufferSize = 1000 - size;
-											char* buffer = new char[bufferSize];
-											copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
-											copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
-											delete[] buffer;
-											copyOfBinFile.close();
-										}
-										binFile.clear();
-										int nextPos = i * 1000;
-										binFile.seekg(nextPos);
-									}
-									if (countOfModifiedValues > 0) {
-										cout << endl << "Modified " << countOfModifiedValues << " values.";
-									}
-									else cout << endl << "No values matching filter have been found.";
-									binFile.close();
-									remove(tableFileName.c_str());
-									rename(copyBin.c_str(), tableFileName.c_str());
+					}
+					else cout << endl << "ERROR: No such table exists";
+				}
+				else {
+					/*cout << endl << "select (c1,c2,...) from";*/
+					string tableFileName = this->args[3] + ".dsc";
+					ifstream table(tableFileName);
+					if (table) {
+						string tableName;
+						getline(table, tableName);
+						string dummyString;
+						int noOfColumns = 0;
+						string columnNames[100] = {};
+						while (!table.eof()) {
+							getline(table, dummyString);
+							string copy = dummyString;
+							string token;
+							size_t pos = 0;
+							string argsCopy[4] = {};
+							int i = 0;
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[i] = token;
+								i++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[i] = copy;
+							columnNames[noOfColumns] = argsCopy[0];
+							noOfColumns++;
+						}
+						cout << endl;
+						string checkedColumns[100] = {};
+						bool columnExists = true;
+						for (int i = 0; i < this->columnCount; i++) {
+							bool isOk = false;
+							for (int j = 0; j < noOfColumns; j++) {
+								if (this->args[i + 1] == columnNames[j]) {
+									checkedColumns[i] = this->args[i + 1];
+									isOk = true;
 								}
 							}
-							else cout << endl << "ERROR: Column not found";
-						}
-						else cout << endl << "ERROR: No such table exists";
-					}
-				}
-
-			};
-
-			class Import {
-			private:
-				string args[10] = {};
-				int argCount = 0;
-				bool isValid = false;
-				CommandParser command;
-			public:
-
-				Import(string args[], int argCount) {
-					if (argCount == 3) {
-						for (int i = 0; i < argCount; i++) {
-							this->args[i] = args[i];
-						}
-						this->argCount = argCount;
-						this->isValid = true;
-					}
-					else if (argCount > 3) {
-						cout << endl << "ERROR: Too many parameters";
-					}
-					else cout << endl << "ERROR: Too few parameters";
-					if (this->isValid) {
-						string ext = args[2];
-						bool found = false;
-						if (ext.substr(ext.find_last_of(".") + 1) == "csv") {
-							found = true;
-						}
-						if (found) {
-							string importFileName = this->args[2];
-							string tableFileName = this->args[1] + ".dsc";
-							ifstream table(tableFileName);
-							if (table) {
-								ifstream imports(importFileName);
-								if (imports.is_open()) {
-									while (!imports.eof()) {
-										string line;
-										getline(imports, line);
-										string insertCommand = "INSERT INTO " + this->args[1] + " VALUES (" + line + ")";
-										if (command.checkExtraSpaces(insertCommand)) {				//Check if your command has any extra spaces
-											cout << endl << "ERROR: Make sure your command has no extra spaces (this is something we were unable to make work, sorry!)";
-										}
-										else if (!command.checkExtraSpaces(insertCommand)) {			//If the command respects the no extra space format, we can calculate the number of arguments in the string and verify it
-											command.computeArgCount(insertCommand);
-											command.breakString(insertCommand);
-										}
-										InsertInto cmd(command.args, command.getArgCount());
-									}
-								}
+							if (!isOk) {
+								columnExists = false;
 							}
-							else cout << endl << "ERROR: No such table exists";
 						}
-						else cout << endl << "ERROR: Invalid text file extension detected";
+						for (int i = 0; i < this->columnCount; i++) {
+							if (i != this->columnCount - 1) {
+								cout << checkedColumns[i] << "/";
+							}
+							else cout << checkedColumns[i];
+						}
+						int noOfSelects = 0;
+						if (columnExists) {
+							tableFileName = this->args[3] + ".dat";
+							ifstream binFile(tableFileName, ios::in | ios::binary);
+							if (binFile.is_open()) {
+								binFile.seekg(0, ios::end);
+								int amountOfValues = binFile.tellg() / 1000;
+								binFile.clear();
+								binFile.seekg(0, ios::beg);
+								string valuesExtracted;
+								for (int i = 1; i <= amountOfValues; i++) {
+									char p;
+									bool isLastCharacter = false;
+									valuesExtracted = "";
+									while (binFile.get(p)) {
+										if (p != '\0') {
+											valuesExtracted += p;
+										}
+										else break;
+									}
+									/*cout << endl << valuesExtracted;*/
+
+									string copy = valuesExtracted;
+									string token;
+									size_t pos = 0;
+									string argsCopy[100] = {};
+									int j = 0;
+									while ((pos = copy.find(",")) != string::npos) {
+										token = copy.substr(0, pos);
+										argsCopy[j] = token;
+										j++;
+										copy.erase(0, pos + 1);
+									}
+									argsCopy[j] = copy;
+
+									cout << endl << "------------------------------------------------------------------";
+									for (int k = 0; k < this->columnCount; k++) {
+										for (int l = 0; l < noOfColumns; l++) {
+											if (columnNames[l] == checkedColumns[k]) {
+												cout << endl << "  " << columnNames[l] << ": " << argsCopy[l];
+												noOfSelects++;
+											}
+										}
+									}
+									binFile.clear();
+									int nextPos = i * 1000;
+									binFile.seekg(nextPos);
+								}
+								if (noOfSelects == 0) {
+									cout << endl << endl << "No values found.";
+								}
+								else cout << endl << endl << "Selected " << noOfSelects << " values.";
+								binFile.close();
+							}
+						}
+
+					}
+					else cout << endl << "ERROR: No such table exists";
+				}
+			}
+		}
+	}
+
+	bool CheckColumnName(string arg) {
+		if (arg.front() == '(' && arg.back() == ')') {
+			string copy = arg;
+			copy.pop_back();
+			copy.erase(copy.begin());
+			if (copy != "") {
+				return true;
+			}
+			else return false;
+		}
+		else return false;
+	}
+
+	string* getColumns()
+	{
+		return this->column_names;
+	}
+
+	string getTableName()
+	{
+		return this->table_name;
+	}
+
+	static int getNoColumns()
+	{
+		return Select::noColumns;
+	}
+
+	void setColumns(string* newColumns, int newNoColumns)
+	{
+		if (newColumns != nullptr && newNoColumns > 0)
+		{
+			if (this->column_names)
+			{
+				delete[] this->column_names;
+			}
+			this->column_names = new string[newNoColumns];
+			memcpy(this->column_names, newColumns, sizeof(string) * newNoColumns);
+			this->noColumns = newNoColumns;
+		}
+	}
+
+	void setTableName(string newTableName)
+	{
+		if (newTableName != "")
+		{
+			this->table_name = newTableName;
+		}
+		else
+		{
+			cout << "ERROR: Table name is missing";
+		}
+	}
+
+	Select(string newTableName)
+	{
+		this->table_name = newTableName;
+	}
+
+	Select(string newTableName, string* newPoints, int noColumns)
+	{
+		this->table_name = newTableName;
+		this->setColumns(newPoints, noColumns);
+	}
+
+	Select(const Select& selection)
+	{
+		this->table_name = selection.table_name;
+		this->setColumns(selection.column_names, selection.noColumns);
+	}
+
+	~Select()
+	{
+		if (this->column_names)
+		{
+			delete[] this->column_names;
+		}
+	}
+
+	//operators
+
+	Select operator=(const Select& selection)
+	{
+		if (selection.table_name == this->table_name)
+		{
+			return *this;
+		}
+		this->table_name = selection.table_name;
+		this->setColumns(selection.column_names, selection.noColumns);
+		return *this;
+	}
+
+	Select operator!()
+	{
+		Select result = *this;
+		result.column_names = nullptr;
+		result.noColumns = 0;
+		return result;
+	}
+
+	explicit operator int()
+	{
+		return this->getNoColumns();
+	}
+
+	friend ostream& operator<<(ostream& console, Select& selection);
+	friend void operator>>(istream& input, Select& selection);
+	friend Select operator+(Select& selection, string text);
+};
+
+int Select::noColumns = 0;
+
+ostream& operator <<(ostream& console, Select& selection)
+{
+	cout << endl << "----------------------" << endl;
+	cout << "The table name is: " << selection.table_name << endl;
+	if (selection.noColumns > 0)
+	{
+		cout << "The number of columns is: " << selection.noColumns << endl;
+		for (int i = 0; i < selection.noColumns; i++)
+		{
+			cout << "Name of column " << i << " is " << selection.column_names[i] << endl;
+		}
+	}
+	return console;
+}
+
+void operator >>(istream& input, Select& selection)
+{
+	cout << endl << "Table name ";
+	input >> selection.table_name;
+	cout << "The number of columns is ";
+	int no;
+	input >> no;
+	string* columns = new string[no];
+	for (int i = 0; i < no; i++)
+	{
+		cout << endl << "The name of column " << i + 1 << " is: ";
+		input >> columns[i];
+	}
+	selection.setColumns(columns, no);
+}
+
+Select operator+(Select& selection, string text)
+{
+	Select result = selection;
+	string* newColumns = new string[selection.noColumns + 1];
+	for (int i = 0; i < selection.noColumns; i++)
+	{
+		newColumns[i] = selection.column_names[i];
+	}
+	newColumns[selection.noColumns] = text;
+	result.setColumns(newColumns, selection.noColumns + 1);
+	return result;
+}
+
+bool operator>(Select selection1, Select selection2)
+{
+	if (selection1.getNoColumns() > selection2.getNoColumns())
+		return true;
+	else
+		return false;
+}
+
+bool operator==(Select selection1, Select selection2)
+{
+	if (selection1.getNoColumns() == selection2.getNoColumns())
+		return true;
+	else
+		return false;
+};
+
+class Update {
+private:
+	string args[20] = {};
+	int argCount = 0;
+	bool isValid = false;
+public:
+
+	Update(string args[], int argCount) {
+		if (argCount == 10) {
+			if (args[2] == "SET" && args[4] == "=" && args[6] == "WHERE" && args[8] == "=") {
+				for (int i = 0; i < argCount; i++) {
+					this->args[i] = args[i];
+				}
+				this->argCount = argCount;
+				//cout << endl << "You used the command: " << this->args[0];
+				//cout << endl << "Table name: " << this->args[1];
+				//cout << endl << "Column to set: " << this->args[3];
+				//cout << endl << "Value to set: " << this->args[5];
+				//cout << endl << "Column being checked in WHERE: " << this->args[7];
+				//cout << endl << "Value being checked in WHERE: " << this->args[9];
+				this->isValid = true;
+			}
+			else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
+		}
+		else if (argCount > 10) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else {
+			cout << endl << "ERROR: Too few parameters";
+		}
+		if (this->isValid) {
+			string tableFileName = this->args[1] + ".dsc";
+			string copyBin;
+			ifstream table(tableFileName);
+			if (table) {
+				string tableName;
+				getline(table, tableName);
+				string dummyString;
+				int noOfColumns = 0;
+				string columnNames[100] = {};
+				while (!table.eof()) {
+					getline(table, dummyString);
+					string copy = dummyString;
+					string token;
+					size_t pos = 0;
+					string argsCopy[4] = {};
+					int i = 0;
+					while ((pos = copy.find(",")) != string::npos) {
+						token = copy.substr(0, pos);
+						argsCopy[i] = token;
+						i++;
+						copy.erase(0, pos + 1);
+					}
+					argsCopy[i] = copy;
+					columnNames[noOfColumns] = argsCopy[0];
+					noOfColumns++;
+				}
+				bool columnExists = false;
+				int columnPosition;
+				int columnToModifyPosition;
+				for (int i = 0; i < noOfColumns; i++) {
+					if (columnNames[i] == args[3]) {
+						columnToModifyPosition = i;
+					}
+					if (columnNames[i] == args[7]) {
+						columnPosition = i;
+						columnExists = true;
 					}
 				}
-			};
+				if (columnExists) {
+					tableFileName = this->args[1] + ".dat";
+					ifstream binFile(tableFileName, ios::in | ios::binary);
+					if (binFile.is_open()) {
+						binFile.seekg(0, ios::end);
+						int amountOfValues = binFile.tellg() / 1000;
+						binFile.clear();
+						binFile.seekg(0, ios::beg);
+						string valuesExtracted;
+						int countOfModifiedValues = 0;
+						for (int i = 1; i <= amountOfValues; i++) {
+							char p;
+							bool isLastCharacter = false;
+							valuesExtracted = "";
+							while (binFile.get(p)) {
+								if (p != '\0') {
+									valuesExtracted += p;
+								}
+								else break;
+							}
+							/*cout << endl << valuesExtracted;*/
+
+							string copy = valuesExtracted;
+							string token;
+							size_t pos = 0;
+							string argsCopy[100] = {};
+							int j = 0;
+							while ((pos = copy.find(",")) != string::npos) {
+								token = copy.substr(0, pos);
+								argsCopy[j] = token;
+								j++;
+								copy.erase(0, pos + 1);
+							}
+							argsCopy[j] = copy;
+
+							if (argsCopy[columnPosition] == this->args[9]) {
+								/*cout << "Yes, there is a value like that";*/
+								argsCopy[columnToModifyPosition] = this->args[5];
+								countOfModifiedValues++;
+								valuesExtracted = "";
+								for (int k = 0; k <= j; k++) {
+									if (k != j) {
+										valuesExtracted = valuesExtracted + argsCopy[k] + ",";
+									}
+									else valuesExtracted = valuesExtracted + argsCopy[k];
+								}
+								/*cout << endl << valuesExtracted;*/
+
+								copyBin = "." + this->args[1] + "_copy.dat";
+								ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
+								int size = valuesExtracted.size() + 1;
+								int bufferSize = 1000 - size;
+								char* buffer = new char[bufferSize];
+								copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
+								copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
+								delete[] buffer;
+								copyOfBinFile.close();
+							}
+
+							else {
+								copyBin = "." + this->args[1] + "_copy.dat";
+								ofstream copyOfBinFile(copyBin, ios::out | ios::app | ios::binary);
+								int size = valuesExtracted.size() + 1;
+								int bufferSize = 1000 - size;
+								char* buffer = new char[bufferSize];
+								copyOfBinFile.write(valuesExtracted.c_str(), sizeof(char) * size);
+								copyOfBinFile.write(buffer, sizeof(char) * bufferSize);
+								delete[] buffer;
+								copyOfBinFile.close();
+							}
+							binFile.clear();
+							int nextPos = i * 1000;
+							binFile.seekg(nextPos);
+						}
+						if (countOfModifiedValues > 0) {
+							cout << endl << "Modified " << countOfModifiedValues << " values.";
+						}
+						else cout << endl << "No values matching filter have been found.";
+						binFile.close();
+						remove(tableFileName.c_str());
+						rename(copyBin.c_str(), tableFileName.c_str());
+					}
+				}
+				else cout << endl << "ERROR: Column not found";
+			}
+			else cout << endl << "ERROR: No such table exists";
+		}
+	}
+
+};
+
+class Import {
+private:
+	string args[10] = {};
+	int argCount = 0;
+	bool isValid = false;
+	CommandParser command;
+public:
+
+	Import(string args[], int argCount) {
+		if (argCount == 3) {
+			for (int i = 0; i < argCount; i++) {
+				this->args[i] = args[i];
+			}
+			this->argCount = argCount;
+			this->isValid = true;
+		}
+		else if (argCount > 3) {
+			cout << endl << "ERROR: Too many parameters";
+		}
+		else cout << endl << "ERROR: Too few parameters";
+		if (this->isValid) {
+			string ext = args[2];
+			bool found = false;
+			if (ext.substr(ext.find_last_of(".") + 1) == "csv") {
+				found = true;
+			}
+			if (found) {
+				string importFileName = this->args[2];
+				string tableFileName = this->args[1] + ".dsc";
+				ifstream table(tableFileName);
+				if (table) {
+					ifstream imports(importFileName);
+					if (imports.is_open()) {
+						while (!imports.eof()) {
+							string line;
+							getline(imports, line);
+							string insertCommand = "INSERT INTO " + this->args[1] + " VALUES (" + line + ")";
+							if (command.checkExtraSpaces(insertCommand)) {				//Check if your command has any extra spaces
+								cout << endl << "ERROR: Make sure your command has no extra spaces (this is something we were unable to make work, sorry!)";
+							}
+							else if (!command.checkExtraSpaces(insertCommand)) {			//If the command respects the no extra space format, we can calculate the number of arguments in the string and verify it
+								command.computeArgCount(insertCommand);
+								command.breakString(insertCommand);
+							}
+							InsertInto cmd(command.args, command.getArgCount());
+						}
+					}
+				}
+				else cout << endl << "ERROR: No such table exists";
+			}
+			else cout << endl << "ERROR: Invalid text file extension detected";
+		}
+	}
+};
