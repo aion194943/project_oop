@@ -1,6 +1,6 @@
 ﻿#include "commands.h"
 #include "console.h"
-//#include WIP 
+#include "fileClasses.h"
 
 int main(int argc, char* argv[]) {
 	if (argc > 1 && argc <= 6) {
