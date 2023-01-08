@@ -1,6 +1,8 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
 
 class CommandParser {
@@ -14,6 +16,10 @@ public:
 	CommandParser() {
 		this->command = command;
 		this->argCount = argCount;
+	}
+
+	void newCommand(string str) {
+		this->command = str;
 	}
 
 	//get the inputted command
@@ -117,6 +123,7 @@ private:
 public:
 
 	CreateTable(string args[], int argCount) {
+		//cout << endl << argCount;
 		if (argCount >= 4 && args[3] != "IF" && args[4] != "NOT" && args[5] != "EXISTS") {
 			string copy;
 			for (int i = 3; i < argCount; i++) {
@@ -162,32 +169,18 @@ public:
 							args[j + 3] = argsCopy[j];
 						}
 						bool validType = true;
-						int count = 0;
 						for (int j = 1; j <= i / 4; j++) {
-							if (args[(i / 4) * j + 1 + count] != "text" && args[(i / 4) * j + 1 + count] != "integer" && args[(i / 4) * j + 1 + count] != "float") {
+							if (args[4 * j] != "text" && args[4 * j] != "integer" && args[4 * j] != "float") {
 								validType = false;
 							}
-							count++;
 						}
 						if (validType) {
 							for (int i = 0; i < argCount; i++) {
 								this->args[i] = args[i];
 							}
-							this->argCount = argCount;
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
-							count = 0;
-							for (int j = 1; j <= i / 4; j++) {
-								cout << endl << "Parameters for column " << j << ": ";
-								cout << endl << "  Column name: " << this->args[(i / 4) * j + count];
-								cout << endl << "  Column type: " << this->args[(i / 4) * j + 1 + count];
-								cout << endl << "  Column size: " << this->args[(i / 4) * j + 2 + count];
-								cout << endl << "  Default value: " << this->args[(i / 4) * j + 3 + count];
-								count++;
-							}
+							this->argCount = 3 + i;
+							this->isValid = true;
+							this->noColumns = i / 4;
 						}
 						else cout << endl << "ERROR: Invalid column type (must be text/integer/float)";
 					}
@@ -195,6 +188,26 @@ public:
 				}
 			}
 			else cout << endl << "ERROR: Invalid column or table format";
+			if (this->isValid) {
+				string descFileName = this->args[2] + ".dsc";
+				ifstream checkIfTableExists(descFileName);
+				if (checkIfTableExists) {
+					cout << endl << "ERROR: Table with same name already exists";
+				}
+				else {
+					ofstream createTableDesc(descFileName, ios::out);
+					createTableDesc << this->args[2] << endl;
+					int count = 0;
+					for (int j = 1; j <= this->noColumns; j++) {
+						if (j != this->noColumns) {
+							createTableDesc << this->args[3 * j + count] << "," << this->args[3 * j + 1 + count] << "," << this->args[3 * j + 2 + count] << "," << this->args[3 * j + 3 + count] << endl;
+						}
+						else createTableDesc << this->args[3 * j + count] << "," << this->args[3 * j + 1 + count] << "," << this->args[3 * j + 2 + count] << "," << this->args[3 * j + 3 + count];
+						count++;
+					}
+					cout << endl << "Table " << args[2] << " created.";
+				}
+			}
 		}
 		else if (argCount >= 4 && args[3] == "IF" && args[4] == "NOT" && args[5] == "EXISTS") {
 			string copy;
@@ -241,36 +254,42 @@ public:
 							args[j + 6] = argsCopy[j];
 						}
 						bool validType = true;
-						int count = 0;
 						for (int j = 1; j <= i / 4; j++) {
-							if (args[(i / 4) * (j + 1) + 1 + count] != "text" && args[(i / 4) * (j + 1) + 1 + count] != "integer" && args[(i / 4) * (j + 1) + 1 + count] != "float") {
+							if (args[4 * j + 3] != "text" && args[4 * j + 3] != "integer" && args[4 * j + 3] != "float") {
 								validType = false;
 							}
-							count++;
 						}
 						if (validType) {
 							for (int i = 0; i < argCount; i++) {
 								this->args[i] = args[i];
 							}
-							this->argCount = argCount;
-							for (int i = 0; i < argCount; i++) {
-								this->args[i] = args[i];
-							}
-							this->argCount = argCount;
-							cout << endl << "You used the command: " << this->args[0] << " " << this->args[1];
-							count = 0;
-							for (int j = 1; j <= i / 4; j++) {
-								cout << endl << "Parameters for column " << j << ": ";
-								cout << endl << "  Column name: " << this->args[(i / 4) * (j + 1) + count];
-								cout << endl << "  Column type: " << this->args[(i / 4) * (j + 1) + 1 + count];
-								cout << endl << "  Column size: " << this->args[(i / 4) * (j + 1) + 2 + count];
-								cout << endl << "  Default value: " << this->args[(i / 4) * (j + 1) + 3 + count];
-								count++;
-							}
+							this->argCount = 6 + i;
+							this->isValid = true;
+							this->noColumns = i / 4;
 						}
 						else cout << endl << "ERROR: Invalid column type (must be text/integer/float)";
 					}
 					else cout << endl << "ERROR: Incomplete column description or missing parantheses";
+					if (this->isValid) {
+						string descFileName = this->args[2] + ".dsc";
+						ifstream checkIfTableExists(descFileName);
+						if (checkIfTableExists) {
+							cout << endl << "ERROR: Table with same name already exists";
+						}
+						else {
+							ofstream createTableDesc(descFileName, ios::out);
+							createTableDesc << this->args[2] << endl;
+							int count = 0;
+							for (int j = 1; j <= this->noColumns; j++) {
+								if (j != this->noColumns) {
+									createTableDesc << this->args[3 * j + 3 + count] << "," << this->args[3 * j + 4 + count] << "," << this->args[3 * j + 5 + count] << "," << this->args[3 * j + 6 + count] << endl;
+								}
+								else createTableDesc << this->args[3 * j + 3 + count] << "," << this->args[3 * j + 4 + count] << "," << this->args[3 * j + 5 + count] << "," << this->args[3 * j + 6 + count];
+								count++;
+							}
+							cout << endl << "Table " << args[2] << " created.";
+						}
+					}
 				}
 			}
 		}
@@ -289,6 +308,22 @@ public:
 		}
 		else return false;
 	}
+
+	string returnSpecificArg(int num) {
+		if (num > argCount && num < 0) {
+			cout << endl << "ERROR: Argument does not exist";
+		}
+		else return this->args[num];
+	}
+
+	int returnArgCount() {
+		return this->argCount;
+	}
+
+	string returnTableName() {
+		return this->args[2];
+	}
+
 
 	string getTableName()
 	{
