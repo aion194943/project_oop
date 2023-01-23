@@ -71,9 +71,10 @@ public:
 						Import cmd(command.args, command.getArgCount());
 					}
 					else cout << endl << "ERROR: Invalid command format, check 'help' for the correct formats";
-					file.close();
+					
 				}
 			}
+			file.close();
 		}
 	}
 };
